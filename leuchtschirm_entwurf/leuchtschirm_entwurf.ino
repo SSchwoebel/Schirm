@@ -7,6 +7,7 @@ FASTLED_USING_NAMESPACE
 // Entwurf fuer den Leuchtschirm basierend auf dem Beispiel "DemoReel100" und https://github.com/FastLED/FastLED/wiki/Multiple-Controller-Examples
 //
 // albi sagt hallo
+// auch yannic gruesst die Welt
 
 
 #define DATA_PINS_START    3
