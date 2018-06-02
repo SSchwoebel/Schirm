@@ -10,7 +10,7 @@ FASTLED_USING_NAMESPACE
 // auch yannic gruesst die Welt
 
 
-#define DATA_PINS_START    3
+#define DATA_PINS_START    4
 #define NUM_STRIPS 8
 #define NUM_LEDS_PER_STRIP 27
 CRGB leds[NUM_STRIPS][NUM_LEDS_PER_STRIP];
@@ -25,7 +25,8 @@ CRGB *leds_flat;                   //Pointer zur Aufnahme der Anfangsadresse des
 uint8_t blink_rate;
 uint8_t rotation_rate;
 
-const int knock_interrupt_pin=2;  
+const int knock_interrupt_pin=2; 
+const int switch_interrupt_pin=3;
 //const int knockDigital=13; 
 const int knockSensor = A0; // the piezo is connected to analog pin 0
 const int threshold = 375;  // threshold value to decide when the detected sound is a knock or not
@@ -59,7 +60,12 @@ void setup() {
   //set interrupt pin for Knock Sensor
   pinMode(knock_interrupt_pin,INPUT);
   //  attachInterrupt(digitalPinToInterrupt(knock_interrupt_pin),setTrigger,RISING);
-  attachInterrupt(0,setTrigger,HIGH);
+  attachInterrupt(knock_interrupt_pin-2,setTrigger,HIGH); //knock_interrupt_pin-2 is a dirty workarround
+  
+  //set interrupt pin for Pattern Switch
+  pinMode(switch_interrupt_pin,INPUT);
+  //  attachInterrupt(digitalPinToInterrupt(knock_interrupt_pin),setTrigger,RISING);
+  attachInterrupt(switch_interrupt_pin-2,nextPatterTrigger,HIGH);  //switch_interrupt_pin-2 is a dirty workarround
   
   
 
@@ -87,8 +93,10 @@ uint8_t gCurrentPatternNumber = 0; // Index number of which pattern is current
 uint8_t gHue = 0; // rotating "base color" used by many of the patterns
 //uint8_t trigger = 0; // Globaler Trigger Wert, benutzbar um ein Triggerevent an Pattern-Funktion weiterzuleiten
 uint8_t on = 0;
+uint8_t switchPressed=0;
 
 volatile uint8_t trigger=0;  //Globaler Trigger Wert, wird von Interrupt-Funktion "setTrigger" genutzt um Trigger an loop weiterzugeben. Muss dazu als "volatile" definiert werden.
+volatile uint8_t switchTrigger=0;  //Globaler Trigger Wert, wird von Interrupt-Funktion "setTrigger" genutzt um Trigger an loop weiterzugeben. Muss dazu als "volatile" definiert werden.
   
 void loop()
 {
@@ -109,6 +117,7 @@ void loop()
   // do some periodic updates
   EVERY_N_MILLISECONDS( 20 ) { gHue++; } // slowly cycle the "base color" through the rainbow
   //EVERY_N_SECONDS( 3000 ) { nextPattern(); } // change patterns periodically
+  nextPatternSwitch();
   
 }
 
@@ -122,6 +131,28 @@ void nextPattern()
   if(ARRAY_SIZE(gPatterns)==ARRAY_SIZE(PatternNames)){
     Serial.println(PatternNames[gCurrentPatternNumber]);
   }
+}
+
+void nextPatternSwitch()
+{
+   static unsigned long starttime;
+   int deadtime=500;
+   
+   if (switchTrigger && switchPressed==0){
+      starttime=millis();
+      nextPattern();
+      switchTrigger = 0;
+      switchPressed = 1;
+    }
+    if((millis()-starttime>deadtime) && switchPressed==1){
+      switchPressed = 0;
+      switchTrigger = 0;
+    } 
+}
+  
+void nextPatterTrigger()
+{
+  switchTrigger=1;  
 }
 
 void rainbow() 
@@ -191,9 +222,9 @@ void sinelon()
   int pos = beatsin16( 13, 0, NUM_LEDS_PER_STRIP-1 );
   leds[0][pos] += CHSV( gHue, 255, 192);
   for(int i=1;i<NUM_STRIPS;i++){
-    //memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP *sizeof(CRGB) );
+    memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP *sizeof(CRGB) );
     //memcpy(&leds[i][i], &leds[i-1][i-1], (NUM_LEDS_PER_STRIP-i) *sizeof(CRGB));
-    memcpy(&leds[i][0], &leds[i-1][NUM_LEDS_PER_STRIP-i], i *sizeof(CRGB));
+    //memcpy(&leds[i][0], &leds[i-1][NUM_LEDS_PER_STRIP-i], i *sizeof(CRGB));
   }
 }
 
@@ -271,6 +302,7 @@ void reactonbeat() {
       }
     }
     on = 0;
+    trigger =0;
   }
 }
 
@@ -293,6 +325,7 @@ void reactonbeat2() {
       }
     }
     on = 0;
+    trigger=0;
   }
 }
 
@@ -380,6 +413,7 @@ void rainbow_react()
   if((millis()-starttime>REACTONBEATDURATION) && on){
     FastLED.setBrightness(int(0.3*BRIGHTNESS));
     on = 0;
+    trigger=0;
   }
   
   // FastLED's built-in rainbow generator
@@ -407,6 +441,7 @@ void rainbow_fade()
   }
   if((timenow-starttime>REACTONBEATDURATION) && on){
     on = 0;
+    trigger=0;
   }
   
   // FastLED's built-in rainbow generator
