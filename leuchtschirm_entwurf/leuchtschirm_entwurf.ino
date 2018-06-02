@@ -86,7 +86,7 @@ void setup() {
 // List of patterns to cycle through.  Each is defined as a separate function below.
 typedef void (*SimplePatternList[])();
 
-SimplePatternList gPatterns = { bars_react, rainbowWithGlitter_react, rainbow_fade, rainbow_react,reactonbeat2, reactonbeat, rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm , rainbow2, rainbowWithGlitter2, confetti2, sinelon2, juggle2, bpm2 , reactonbeat, goaround};
+SimplePatternList gPatterns = {LavaColors_fade, OceanColors_fade,  ForestColors_fade,RainbowStripeColors_fade, bars_react, rainbowWithGlitter_react, rainbow_fade, rainbow_react,reactonbeat2, reactonbeat, rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm , rainbow2, rainbowWithGlitter2, confetti2, sinelon2, juggle2, bpm2 , reactonbeat, goaround};
 
 // String-Liste der Namen dieser Pattern um diese dann auf dem Serial Monitor ausgeben zu können. Muss manuell geaendert werden.
 const char *PatternNames[] = { "reactonbeat", "rainbow", "rainbowWithGlitter", "confetti", "sinelon", "juggle", "bpm" , "rainbow2", "rainbowWithGlitter2", "confetti2", "sinelon2", "juggle2", "bpm2" , "reactonbeat", "goaround"};
@@ -142,6 +142,7 @@ void nextPatternSwitch()
    
    if (switchTrigger && switchPressed==0){
       starttime=millis();
+      FastLED.setBrightness(int(1.0*BRIGHTNESS));
       nextPattern();
       switchTrigger = 0;
       switchPressed = 1;
@@ -442,7 +443,7 @@ void rainbow_react()
   static unsigned long starttime;
   if (trigger && on==0){
     starttime=millis();
-    FastLED.setBrightness(int(2*BRIGHTNESS));
+    FastLED.setBrightness(int(3*BRIGHTNESS));
     trigger = 0;
     on = 1;
   }
@@ -467,13 +468,13 @@ void rainbow_fade()
   
   if (trigger && on==0){
     starttime=timenow;
-    FastLED.setBrightness(int(2*BRIGHTNESS));
+    FastLED.setBrightness(int(3*BRIGHTNESS));
     trigger = 0;
     on = 1;
   }
   
   if((timenow-starttime<fadeduration)){
-    FastLED.setBrightness(int((2.0*(fadeduration-timenow+starttime)/fadeduration+1.0)*BRIGHTNESS));
+    FastLED.setBrightness(int((3.0*(fadeduration-timenow+starttime)/fadeduration+1.0)*BRIGHTNESS));
   }
   if((timenow-starttime>REACTONBEATDURATION) && on){
     on = 0;
@@ -512,7 +513,7 @@ void rainbowWithGlitter_react()
 }
 
 
-void palette_fade() 
+void LavaColors_fade() 
 { 
 
   static unsigned long starttime;
@@ -520,7 +521,112 @@ void palette_fade()
   int timenow=millis();
   
 
-  CRGBPalette16 currentPalette=HeatColors_p; //predefined "palette" variables: - CloudColors, + LavaColors_p, + Ocean_Colors_p, + Forest_Colors_p,Rainbow_Colors, ++ RainbowStripeColors_p,-PartyColors_p,-Heat_Colors_p
+  CRGBPalette16 currentPalette=LavaColors_p; //predefined "palette" variables: - CloudColors, + LavaColors_p, + Ocean_Colors_p, + Forest_Colors_p,Rainbow_Colors, ++ RainbowStripeColors_p,-PartyColors_p,-Heat_Colors_p
+  
+  if (trigger && on==0){
+    starttime=timenow;
+    FastLED.setBrightness(int(3*BRIGHTNESS));
+    trigger = 0;
+    on = 1;
+  }
+  
+  if((timenow-starttime<fadeduration)){
+    FastLED.setBrightness(int((3.0*(fadeduration-timenow+starttime)/fadeduration+1.0)*BRIGHTNESS));
+
+  }
+  if((timenow-starttime>REACTONBEATDURATION) && on){
+    on = 0;
+    trigger=0;
+  }
+
+  
+ 
+  fill_PaletteColors( leds[0],NUM_LEDS_PER_STRIP, currentPalette, gHue, 7);
+  for(int i=1;i<NUM_STRIPS;i++){                                 //Parallel fuer jeden Arm gleich
+    memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP *sizeof(CRGB) );
+  }
+
+}
+
+void OceanColors_fade() 
+{ 
+
+  static unsigned long starttime;
+  int fadeduration=250;
+  int timenow=millis();
+  
+
+  CRGBPalette16 currentPalette=OceanColors_p; //predefined "palette" variables: - CloudColors, + LavaColors_p, + Ocean_Colors_p, + Forest_Colors_p,Rainbow_Colors, ++ RainbowStripeColors_p,-PartyColors_p,-Heat_Colors_p
+  
+  if (trigger && on==0){
+    starttime=timenow;
+    FastLED.setBrightness(int(3*BRIGHTNESS));
+    trigger = 0;
+    on = 1;
+  }
+  
+  if((timenow-starttime<fadeduration)){
+    FastLED.setBrightness(int((3.0*(fadeduration-timenow+starttime)/fadeduration+1.0)*BRIGHTNESS));
+
+  }
+  if((timenow-starttime>REACTONBEATDURATION) && on){
+    on = 0;
+    trigger=0;
+  }
+
+  
+ 
+  fill_PaletteColors( leds[0],NUM_LEDS_PER_STRIP, currentPalette, gHue, 7);
+  for(int i=1;i<NUM_STRIPS;i++){                                 //Parallel fuer jeden Arm gleich
+    memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP *sizeof(CRGB) );
+  }
+
+}
+
+void ForestColors_fade() 
+{ 
+
+  static unsigned long starttime;
+  int fadeduration=250;
+  int timenow=millis();
+  
+
+  CRGBPalette16 currentPalette=ForestColors_p; //predefined "palette" variables: - CloudColors, + LavaColors_p, + Ocean_Colors_p, + Forest_Colors_p,Rainbow_Colors, ++ RainbowStripeColors_p,-PartyColors_p,-Heat_Colors_p
+  
+  if (trigger && on==0){
+    starttime=timenow;
+    FastLED.setBrightness(int(3*BRIGHTNESS));
+    trigger = 0;
+    on = 1;
+  }
+  
+  if((timenow-starttime<fadeduration)){
+    FastLED.setBrightness(int((3.0*(fadeduration-timenow+starttime)/fadeduration+1.0)*BRIGHTNESS));
+
+  }
+  if((timenow-starttime>REACTONBEATDURATION) && on){
+    on = 0;
+    trigger=0;
+  }
+
+  
+ 
+  fill_PaletteColors( leds[0],NUM_LEDS_PER_STRIP, currentPalette, gHue, 7);
+  for(int i=1;i<NUM_STRIPS;i++){                                 //Parallel fuer jeden Arm gleich
+    memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP *sizeof(CRGB) );
+  }
+
+}
+
+void RainbowStripeColors_fade() 
+{ 
+
+  static unsigned long starttime;
+  int fadeduration=250;
+  int timenow=millis();
+  
+
+  CRGBPalette16 currentPalette=RainbowStripeColors_p; //predefined "palette" variables: - CloudColors, + LavaColors_p, + Ocean_Colors_p, + Forest_Colors_p,Rainbow_Colors, ++ RainbowStripeColors_p,-PartyColors_p,-Heat_Colors_p
   
   if (trigger && on==0){
     starttime=timenow;
