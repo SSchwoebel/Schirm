@@ -660,6 +660,8 @@ void bars_react_slow()
   int timenow=millis();
   int n;
   
+  FastLED.setBrightness(int(2*BRIGHTNESS));
+  
   if (trigger && on==0){    
     rainbow();
     starttime=timenow;
@@ -685,6 +687,8 @@ void bars_react_fast()
   int fadeduration=250;
   int timenow=millis();
   int n;
+  
+  FastLED.setBrightness(int(2*BRIGHTNESS));
   
   if (trigger && on==0){    
     rainbow();
