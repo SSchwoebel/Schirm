@@ -85,7 +85,7 @@ void setup() {
 
 // List of patterns to cycle through.  Each is defined as a separate function below.
 typedef void (*SimplePatternList[])();
-SimplePatternList gPatterns = { rainbow_fade, rainbow_react,reactonbeat2, reactonbeat, rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm , rainbow2, rainbowWithGlitter2, confetti2, sinelon2, juggle2, bpm2 , reactonbeat, goaround};
+SimplePatternList gPatterns = { rainbowWithGlitter_react, rainbow_fade, rainbow_react,reactonbeat2, reactonbeat, rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm , rainbow2, rainbowWithGlitter2, confetti2, sinelon2, juggle2, bpm2 , reactonbeat, goaround};
 // String-Liste der Namen dieser Pattern um diese dann auf dem Serial Monitor ausgeben zu können. Muss manuell geaendert werden.
 const char *PatternNames[] = { "reactonbeat", "rainbow", "rainbowWithGlitter", "confetti", "sinelon", "juggle", "bpm" , "rainbow2", "rainbowWithGlitter2", "confetti2", "sinelon2", "juggle2", "bpm2" , "reactonbeat", "goaround"};
 
@@ -192,6 +192,15 @@ void addGlitter( fract8 chanceOfGlitter)
 {
   if( random8() < chanceOfGlitter) {
     leds_flat[ random16(NUM_STRIPS*NUM_LEDS_PER_STRIP) ] += CRGB::White;
+  }
+}
+
+void addGlitter_more( fract8 chanceOfGlitter, int n) 
+{
+  if( random8() < chanceOfGlitter) {
+    for(int i=0; i<n; i++){
+      leds_flat[ random16(NUM_STRIPS*NUM_LEDS_PER_STRIP) ] += CRGB::White;
+    }
   }
 }
 
@@ -449,4 +458,26 @@ void rainbow_fade()
   for(int i=1;i<NUM_STRIPS;i++){                                 //Parallel fuer jeden Arm gleich
     memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP *sizeof(CRGB) );
   }
+}
+
+void rainbowWithGlitter_react() 
+{
+  static unsigned long starttime;
+  int fadeduration=250;
+  int timenow=millis();
+  // built-in FastLED rainbow, plus some random sparkly glitter
+  rainbow();
+  if (trigger && on==0){
+    starttime=timenow;
+    addGlitter_more(100, 10);
+    trigger = 0;
+    on = 1;
+  }
+  if((timenow-starttime>REACTONBEATDURATION) && on){
+    on = 0;
+    trigger=0;
+  }
+//  for(int i=1;i<NUM_STRIPS;i++){                                 //Parallel fuer jeden Arm gleich
+//    memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP *sizeof(CRGB) );
+//  }
 }
