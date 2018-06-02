@@ -85,7 +85,7 @@ void setup() {
 
 // List of patterns to cycle through.  Each is defined as a separate function below.
 typedef void (*SimplePatternList[])();
-SimplePatternList gPatterns = { rainbowWithGlitter_react, rainbow_fade, rainbow_react,reactonbeat2, reactonbeat, rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm , rainbow2, rainbowWithGlitter2, confetti2, sinelon2, juggle2, bpm2 , reactonbeat, goaround};
+SimplePatternList gPatterns = { bars_react, rainbowWithGlitter_react, rainbow_fade, rainbow_react,reactonbeat2, reactonbeat, rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm , rainbow2, rainbowWithGlitter2, confetti2, sinelon2, juggle2, bpm2 , reactonbeat, goaround};
 // String-Liste der Namen dieser Pattern um diese dann auf dem Serial Monitor ausgeben zu können. Muss manuell geaendert werden.
 const char *PatternNames[] = { "reactonbeat", "rainbow", "rainbowWithGlitter", "confetti", "sinelon", "juggle", "bpm" , "rainbow2", "rainbowWithGlitter2", "confetti2", "sinelon2", "juggle2", "bpm2" , "reactonbeat", "goaround"};
 
@@ -159,6 +159,19 @@ void rainbow()
 {
   // FastLED's built-in rainbow generator
   fill_rainbow( leds[0],NUM_LEDS_PER_STRIP, gHue, 7);
+  for(int i=1;i<NUM_STRIPS;i++){                                 //Parallel fuer jeden Arm gleich
+    memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP *sizeof(CRGB) );
+  }
+}
+
+void rainbow_bar(int n) 
+{
+  //n determines the amount of black LEDs
+  // FastLED's built-in rainbow generator
+  fill_rainbow( leds[0],NUM_LEDS_PER_STRIP, gHue, 7);
+  for(int i=0; i<n; i++){
+    leds[0][i] = CRGB::Black;
+  }
   for(int i=1;i<NUM_STRIPS;i++){                                 //Parallel fuer jeden Arm gleich
     memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP *sizeof(CRGB) );
   }
@@ -482,4 +495,30 @@ void rainbowWithGlitter_react()
     trigger=0;
   }
 
+}
+
+void bars_react() 
+{
+  static unsigned long starttime;
+  int fadeduration=250;
+  int timenow=millis();
+  int n;
+  
+  if (trigger && on==0){    
+    rainbow();
+    starttime=timenow;
+    trigger = 0;
+    on = 1;
+  }
+  if((timenow-starttime<500)){
+    n = int((timenow-starttime)/500*8);
+    rainbow_bar(n);
+  }
+  if((timenow-starttime>REACTONBEATDURATION) && on){
+    on = 0;
+    trigger=0;
+  }
+//  if(on==0){
+//    rainbow_bar(8);
+//  }
 }
