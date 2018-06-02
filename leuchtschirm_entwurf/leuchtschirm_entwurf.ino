@@ -653,7 +653,7 @@ void RainbowStripeColors_fade()
 
 }
 
-void bars_react() 
+void bars_react_slow() 
 {
   static unsigned long starttime;
   int fadeduration=250;
@@ -666,15 +666,41 @@ void bars_react()
     trigger = 0;
     on = 1;
   }
-  if((timenow-starttime<500)){
-    n = int((timenow-starttime)/500*8);
+  else if((timenow-starttime<500)){
+    n = int(float(timenow-starttime)/500.0*8.0);
     rainbow_bar(n);
+  }
+  else if(on==0){
+    rainbow_bar(9);
   }
   if((timenow-starttime>REACTONBEATDURATION) && on){
     on = 0;
     trigger=0;
   }
-//  if(on==0){
-//    rainbow_bar(8);
-//  }
+}
+
+void bars_react_fast() 
+{
+  static unsigned long starttime;
+  int fadeduration=250;
+  int timenow=millis();
+  int n;
+  
+  if (trigger && on==0){    
+    rainbow();
+    starttime=timenow;
+    trigger = 0;
+    on = 1;
+  }
+  else if((timenow-starttime<500)){
+    n = int(float(timenow-starttime)/500.0*8.0);
+    rainbow_bar(n);
+  }
+  else if(on==0){
+    rainbow_bar(9);
+  }
+  if((timenow-starttime>REACTONBEATDURATION) && on){
+    on = 0;
+    trigger=0;
+  }
 }
