@@ -86,7 +86,7 @@ void setup() {
 // List of patterns to cycle through.  Each is defined as a separate function below.
 typedef void (*SimplePatternList[])();
 
-SimplePatternList gPatterns = {LavaColors_fade, OceanColors_fade,  ForestColors_fade,RainbowStripeColors_fade, bars_react, rainbowWithGlitter_react, rainbow_fade, rainbow_react,reactonbeat2, reactonbeat, rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm , rainbow2, rainbowWithGlitter2, confetti2, sinelon2, juggle2, bpm2 , reactonbeat, goaround};
+SimplePatternList gPatterns = {LavaColors_fade, OceanColors_fade,  ForestColors_fade,RainbowStripeColors_fade, bars_react_fast, bars_react_slow, rainbowWithGlitter_react, rainbow_fade, rainbow_react,reactonbeat2, reactonbeat, rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm , rainbow2, rainbowWithGlitter2, confetti2, sinelon2, juggle2, bpm2 , reactonbeat, goaround};
 
 // String-Liste der Namen dieser Pattern um diese dann auf dem Serial Monitor ausgeben zu können. Muss manuell geaendert werden.
 const char *PatternNames[] = { "reactonbeat", "rainbow", "rainbowWithGlitter", "confetti", "sinelon", "juggle", "bpm" , "rainbow2", "rainbowWithGlitter2", "confetti2", "sinelon2", "juggle2", "bpm2" , "reactonbeat", "goaround"};
@@ -656,7 +656,7 @@ void RainbowStripeColors_fade()
 void bars_react_slow() 
 {
   static unsigned long starttime;
-  int fadeduration=250;
+  int fadeduration=500;
   int timenow=millis();
   int n;
   
@@ -666,8 +666,8 @@ void bars_react_slow()
     trigger = 0;
     on = 1;
   }
-  else if((timenow-starttime<500)){
-    n = int(float(timenow-starttime)/500.0*8.0);
+ else if((timenow-starttime<fadeduration)){
+    n = int(float(timenow-starttime)/float(fadeduration)*8.0);
     rainbow_bar(n);
   }
   else if(on==0){
@@ -692,8 +692,8 @@ void bars_react_fast()
     trigger = 0;
     on = 1;
   }
-  else if((timenow-starttime<500)){
-    n = int(float(timenow-starttime)/500.0*8.0);
+  else if((timenow-starttime<fadeduration)){
+    n = int(float(timenow-starttime)/float(fadeduration)*8.0);
     rainbow_bar(n);
   }
   else if(on==0){
