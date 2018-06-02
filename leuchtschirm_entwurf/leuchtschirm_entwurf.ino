@@ -16,7 +16,7 @@ FASTLED_USING_NAMESPACE
 CRGB leds[NUM_STRIPS][NUM_LEDS_PER_STRIP];
 CRGB *leds_flat;                   //Pointer zur Aufnahme der Anfangsadresse des 2D-Arrays, falls man doch alle LEDS als ein 1D-array ansprechen moechte
 
-#define BRIGHTNESS          60
+#define BRIGHTNESS          30
 #define FRAMES_PER_SECOND  100
 #define BLINK_RATE_DEFAULT  120   //Blinken pro Minute
 #define REACTONBEATDURATION 50   //wie lange leuchten nach beat in ms
@@ -415,12 +415,12 @@ void rainbow_react()
   static unsigned long starttime;
   if (trigger && on==0){
     starttime=millis();
-    FastLED.setBrightness(int(1*BRIGHTNESS));
+    FastLED.setBrightness(int(2*BRIGHTNESS));
     trigger = 0;
     on = 1;
   }
   if((millis()-starttime>REACTONBEATDURATION) && on){
-    FastLED.setBrightness(int(0.3*BRIGHTNESS));
+    FastLED.setBrightness(int(1*BRIGHTNESS));
     on = 0;
     trigger=0;
   }
@@ -440,13 +440,13 @@ void rainbow_fade()
   
   if (trigger && on==0){
     starttime=timenow;
-    FastLED.setBrightness(int(1*BRIGHTNESS));
+    FastLED.setBrightness(int(2*BRIGHTNESS));
     trigger = 0;
     on = 1;
   }
   
   if((timenow-starttime<fadeduration)){
-    FastLED.setBrightness(int((1.0*(fadeduration-timenow+starttime)/fadeduration+0.3)*BRIGHTNESS));
+    FastLED.setBrightness(int((2.0*(fadeduration-timenow+starttime)/fadeduration+1.0)*BRIGHTNESS));
   }
   if((timenow-starttime>REACTONBEATDURATION) && on){
     on = 0;
@@ -465,7 +465,8 @@ void rainbowWithGlitter_react()
   static unsigned long starttime;
   int fadeduration=250;
   int timenow=millis();
-  // built-in FastLED rainbow, plus some random sparkly glitter
+  
+  
   rainbow();
   if (trigger && on==0){
     starttime=timenow;
@@ -473,11 +474,12 @@ void rainbowWithGlitter_react()
     trigger = 0;
     on = 1;
   }
+  if(on){
+    addGlitter_more(100, 10);
+  }
   if((timenow-starttime>REACTONBEATDURATION) && on){
     on = 0;
     trigger=0;
   }
-//  for(int i=1;i<NUM_STRIPS;i++){                                 //Parallel fuer jeden Arm gleich
-//    memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP *sizeof(CRGB) );
-//  }
+
 }
