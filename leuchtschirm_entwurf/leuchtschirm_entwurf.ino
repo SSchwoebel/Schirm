@@ -155,6 +155,18 @@ void nextPatterTrigger()
   switchTrigger=1;  
 }
 
+void FillLEDsFromPaletteColors(struct CRGB *pFirstLED, int numToFill,  CRGBPalette16 palette, uint8_t initialhue, uint8_t deltahue=5) //predefined "palette" variables: CloudColors_p, LavaColors_p, Ocean_Colors_p, Forest_Colors_p,Rainbow_Colors,RainbowStripeColors_p,PartyColors_p,Heat_Colors_p
+{
+ uint8_t brightness = 255;
+ 
+ for( int i = 0; i < numToFill; i++) {
+ pFirstLED[i] = ColorFromPalette( palette, initialhue);
+ initialhue += deltahue;
+ }
+}
+
+//---------------------------------------------------------------------------------------
+
 void rainbow() 
 {
   // FastLED's built-in rainbow generator
@@ -446,6 +458,36 @@ void rainbow_fade()
   
   // FastLED's built-in rainbow generator
   fill_rainbow( leds[0],NUM_LEDS_PER_STRIP, gHue, 7);
+  for(int i=1;i<NUM_STRIPS;i++){                                 //Parallel fuer jeden Arm gleich
+    memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP *sizeof(CRGB) );
+  }
+}
+
+void palette_fade() 
+{ 
+  static unsigned long starttime;
+  int fadeduration=250;
+  int timenow=millis();
+  
+  CRGBPalette16 CurrentPalette=CloudColors_p; predefined "palette" variables: CloudColors_p, LavaColors_p, Ocean_Colors_p, Forest_Colors_p,Rainbow_Colors,RainbowStripeColors_p,PartyColors_p,Heat_Colors_p
+  
+  if (trigger && on==0){
+    starttime=timenow;
+    FastLED.setBrightness(int(3*BRIGHTNESS));
+    trigger = 0;
+    on = 1;
+  }
+  
+  if((timenow-starttime<fadeduration)){
+    FastLED.setBrightness(int((3.0*(fadeduration-timenow+starttime)/fadeduration+1.0)*BRIGHTNESS));
+  }
+  if((timenow-starttime>REACTONBEATDURATION) && on){
+    on = 0;
+    trigger=0;
+  }
+  
+  // FastLED's built-in rainbow generator
+  fill_rainbow( leds[0],NUM_LEDS_PER_STRIP, currentPalette, gHue, 7);
   for(int i=1;i<NUM_STRIPS;i++){                                 //Parallel fuer jeden Arm gleich
     memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP *sizeof(CRGB) );
   }
