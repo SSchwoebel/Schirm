@@ -176,6 +176,17 @@ void ParaPaletteColors(CRGBPalette16 palette)                                   
   }
 }
 
+void ParaPaletteColors_bar(CRGBPalette16 palette, int n)                                      //Parallel jeden Arm mit den Farben aus der currentPalette fuellen
+{
+  fill_PaletteColors( leds[0],NUM_LEDS_PER_STRIP, palette, gHue, 7);
+  for(int i=0; i<n; i++){
+    leds[0][i] = CRGB::Black;
+  }
+  for(int i=1;i<NUM_STRIPS;i++){                                 //Parallel fuer jeden Arm gleich
+    memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP *sizeof(CRGB) );
+  }
+}
+
 void rainbow() 
 {
   // FastLED's built-in rainbow generator
@@ -582,27 +593,28 @@ void RainbowStripeColors_fade()
 
 //-------------------------------------------------------------------
 
-void bars_react_slow() 
+// base function for bars
+
+void PaletteColors_bars(CRGBPalette16 currentPalette, int barduration) 
 {
   static unsigned long starttime;
-  int fadeduration=500;
   int timenow=millis();
   int n;
   
   FastLED.setBrightness(int(2*BRIGHTNESS));
   
   if (trigger && on==0){    
-    rainbow();
+    ParaPaletteColors(currentPalette);
     starttime=timenow;
     trigger = 0;
     on = 1;
   }
- else if((timenow-starttime<fadeduration)){
-    n = int(float(timenow-starttime)/float(fadeduration)*8.0);
-    rainbow_bar(n);
+ else if((timenow-starttime<barduration)){
+    n = int(float(timenow-starttime)/float(barduration)*8.0);
+    ParaPaletteColors_bar(currentPalette, n);
   }
   else if(on==0){
-    rainbow_bar(9);
+    ParaPaletteColors_bar(currentPalette, 9);
   }
   if((timenow-starttime>REACTONBEATDURATION) && on){
     on = 0;
@@ -610,30 +622,54 @@ void bars_react_slow()
   }
 }
 
-void bars_react_fast() 
+// functions with color palette: fast
+
+void RainbowColors_bars_fast() 
 {
-  static unsigned long starttime;
-  int fadeduration=250;
-  int timenow=millis();
-  int n;
-  
-  FastLED.setBrightness(int(2*BRIGHTNESS));
-  
-  if (trigger && on==0){    
-    rainbow();
-    starttime=timenow;
-    trigger = 0;
-    on = 1;
-  }
-  else if((timenow-starttime<fadeduration)){
-    n = int(float(timenow-starttime)/float(fadeduration)*8.0);
-    rainbow_bar(n);
-  }
-  else if(on==0){
-    rainbow_bar(9);
-  }
-  if((timenow-starttime>REACTONBEATDURATION) && on){
-    on = 0;
-    trigger=0;
-  }
+  int barduration = 250;
+  PaletteColors_bars_react(RainbowColors_p, barduration);
+}
+
+void LavaColors_bars_fast() 
+{
+  int barduration = 250;
+  PaletteColors_bars_react(LavaColors_p, barduration);
+}
+
+void OceanColors_bars_fast() 
+{
+  int barduration = 250;
+  PaletteColors_bars_react(OceanColors_p, barduration);
+}
+
+void ForestColors_bars_fast() 
+{
+  int barduration = 250;
+  PaletteColors_bars_react(ForestColors_p, barduration);
+}
+
+// functions with color palette: slow
+
+void RainbowColors_bars_slow() 
+{
+  int barduration = 500;
+  PaletteColors_bars_react(RainbowColors_p, barduration);
+}
+
+void LavaColors_bars_slow() 
+{
+  int barduration = 500;
+  PaletteColors_bars_react(LavaColors_p, barduration);
+}
+
+void OceanColors_bars_slow() 
+{
+  int barduration = 500;
+  PaletteColors_bars_react(OceanColors_p, barduration);
+}
+
+void ForestColors_bars_slow() 
+{
+  int barduration = 500;
+  PaletteColors_bars_react(ForestColors_p, barduration);
 }
