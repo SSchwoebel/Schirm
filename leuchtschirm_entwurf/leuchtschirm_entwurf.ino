@@ -12,11 +12,11 @@ FASTLED_USING_NAMESPACE
 
 #define DATA_PINS_START    4
 #define NUM_STRIPS 8
-#define NUM_LEDS_PER_STRIP 27
+#define NUM_LEDS_PER_STRIP 9
 CRGB leds[NUM_STRIPS][NUM_LEDS_PER_STRIP];
 CRGB *leds_flat;                   //Pointer zur Aufnahme der Anfangsadresse des 2D-Arrays, falls man doch alle LEDS als ein 1D-array ansprechen moechte
 
-#define BRIGHTNESS          20
+//#define BRIGHTNESS          20    //define variable instead compiler directive
 #define FRAMES_PER_SECOND  100
 #define BLINK_RATE_DEFAULT  120   //Blinken pro Minute
 #define REACTONBEATDURATION 50   //wie lange leuchten nach beat in ms
@@ -24,16 +24,12 @@ CRGB *leds_flat;                   //Pointer zur Aufnahme der Anfangsadresse des
 
 uint8_t blink_rate;
 uint8_t rotation_rate;
+uint8_t BRIGHTNESS;
 
 const int knock_interrupt_pin=2; 
 const int switch_interrupt_pin=3;
 //const int knockDigital=13; 
-const int knockSensor = A0; // the piezo is connected to analog pin 0
-const int threshold = 375;  // threshold value to decide when the detected sound is a knock or not
-
-
-// these variables will change:
-int sensorReading = 0;      // variable to store the value read from the sensor pin
+const int brightnessPoti = A0; // brightness poti is connected to analog pin 0
 
 
 void setup() {
@@ -52,6 +48,7 @@ void setup() {
   FastLED.addLeds<WS2811,DATA_PINS_START+6,BRG>(leds[6],NUM_LEDS_PER_STRIP);
   FastLED.addLeds<WS2811,DATA_PINS_START+7,BRG>(leds[7],NUM_LEDS_PER_STRIP);
   // set master brightness control
+  BRIGHTNESS=analogRead(brightnessPoti)/8;
   FastLED.setBrightness(BRIGHTNESS);
   
   //set Digital Input for Knock Sensor
@@ -86,7 +83,7 @@ void setup() {
 // List of patterns to cycle through.  Each is defined as a separate function below.
 typedef void (*SimplePatternList[])();
 
-SimplePatternList gPatterns = {LavaColors_fade, OceanColors_fade,  ForestColors_fade,RainbowStripeColors_fade, rainbowWithGlitter_react, rainbow_fade, rainbow_react,reactonbeat2, reactonbeat, rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm , rainbow2, rainbowWithGlitter2, confetti2, sinelon2, juggle2, bpm2 , reactonbeat, goaround};
+SimplePatternList gPatterns = {RainbowColors_bars_fast, RainbowColors_bars_slow, OceanColors_bars_fast, OceanColors_bars_slow, rainbow_react,rainbow_fade,LavaColors_fade, OceanColors_fade,  ForestColors_fade,RainbowStripeColors_fade, rainbowWithGlitter_react, LavaColors_withGlitter_react, OceanColors_withGlitter_react, ForestColors_withGlitter_react, RainbowStripeColors_withGlitter_react, reactonbeat2, reactonbeat, rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm , rainbow2, rainbowWithGlitter2, confetti2, sinelon2, juggle2, bpm2 , reactonbeat, goaround};
 
 // String-Liste der Namen dieser Pattern um diese dann auf dem Serial Monitor ausgeben zu können. Muss manuell geaendert werden.
 const char *PatternNames[] = { "reactonbeat", "rainbow", "rainbowWithGlitter", "confetti", "sinelon", "juggle", "bpm" , "rainbow2", "rainbowWithGlitter2", "confetti2", "sinelon2", "juggle2", "bpm2" , "reactonbeat", "goaround"};
@@ -121,6 +118,10 @@ void loop()
   //EVERY_N_SECONDS( 3000 ) { nextPattern(); } // change patterns periodically
   nextPatternSwitch();
   
+  
+  // set master brightness control with poti
+  EVERY_N_MILLISECONDS(100){ BRIGHTNESS=analogRead(brightnessPoti)/8; }
+  
 }
 
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
@@ -142,7 +143,6 @@ void nextPatternSwitch()
    
    if (switchTrigger && switchPressed==0){
       starttime=millis();
-      FastLED.setBrightness(int(1.0*BRIGHTNESS));
       nextPattern();
       switchTrigger = 0;
       switchPressed = 1;
@@ -160,8 +160,6 @@ void nextPatterTrigger()
 
 void fill_PaletteColors(struct CRGB *pFirstLED, int numToFill,  CRGBPalette16 palette, uint8_t initialhue, uint8_t deltahue=5) //predefined "palette" variables: - CloudColors, + LavaColors_p, + OceanColors_p, + ForestColors_p,RainbowColors_p, ++ RainbowStripeColors_p,-PartyColors_p,-HeatColors_p
 {
- uint8_t brightness = 255;
- 
  for( int i = 0; i < numToFill; i++) {
  pFirstLED[i] = ColorFromPalette( palette, initialhue);
  initialhue += deltahue;
@@ -194,6 +192,7 @@ void rainbow()
   for(int i=1;i<NUM_STRIPS;i++){                                 //Parallel fuer jeden Arm gleich
     memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP *sizeof(CRGB) );
   }
+  FastLED.setBrightness(BRIGHTNESS);
 }
 
 void rainbow_bar(int n) 
@@ -207,12 +206,14 @@ void rainbow_bar(int n)
   for(int i=1;i<NUM_STRIPS;i++){                                 //Parallel fuer jeden Arm gleich
     memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP *sizeof(CRGB) );
   }
+  FastLED.setBrightness(BRIGHTNESS);
 }
 
 void rainbow2() 
 {
   // FastLED's built-in rainbow generator
   fill_rainbow( leds_flat,NUM_STRIPS*NUM_LEDS_PER_STRIP, gHue, 7);
+  FastLED.setBrightness(BRIGHTNESS);
 }
 
 void rainbowWithGlitter() 
@@ -223,6 +224,7 @@ void rainbowWithGlitter()
   for(int i=1;i<NUM_STRIPS;i++){                                 //Parallel fuer jeden Arm gleich
     memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP *sizeof(CRGB) );
   }
+  FastLED.setBrightness(BRIGHTNESS);
 }
 
 void rainbowWithGlitter2() 
@@ -230,6 +232,7 @@ void rainbowWithGlitter2()
   // built-in FastLED rainbow, plus some random sparkly glitter
   rainbow();
   addGlitter(80);
+  FastLED.setBrightness(BRIGHTNESS);
 }
 
 
@@ -260,6 +263,7 @@ void confetti()
   for(int i=1;i<NUM_STRIPS;i++){                                 //Parallel fuer jeden Arm gleich
     memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP *sizeof(CRGB) );
   }
+  FastLED.setBrightness(BRIGHTNESS);
 }
 
 void confetti2() 
@@ -268,6 +272,7 @@ void confetti2()
   fadeToBlackBy( leds_flat, NUM_LEDS_PER_STRIP*NUM_STRIPS, 10);
   int pos = random16(NUM_LEDS_PER_STRIP*NUM_STRIPS);
   leds_flat[pos] += CHSV( gHue + random8(64), 200, 255);
+  FastLED.setBrightness(BRIGHTNESS);
 }
 
 void sinelon()
@@ -282,6 +287,7 @@ void sinelon()
     //memcpy(&leds[i][i], &leds[i-1][i-1], (NUM_LEDS_PER_STRIP-i) *sizeof(CRGB));
     //memcpy(&leds[i][0], &leds[i-1][NUM_LEDS_PER_STRIP-i], i *sizeof(CRGB));
   }
+  FastLED.setBrightness(BRIGHTNESS);
 }
 
 void sinelon2()
@@ -291,6 +297,7 @@ void sinelon2()
   fadeToBlackBy( leds_flat, NUM_STRIPS*NUM_LEDS_PER_STRIP, 20);
   int pos = beatsin16( 13, 0, NUM_STRIPS*NUM_LEDS_PER_STRIP-1 );
   leds_flat[pos] += CHSV( gHue, 255, 192);
+  FastLED.setBrightness(BRIGHTNESS);
 }
 
 void bpm()
@@ -304,6 +311,7 @@ void bpm()
   for(int i=1;i<NUM_STRIPS;i++){                                 //Parallel fuer jeden Arm gleich
     memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP *sizeof(CRGB) );
   }
+  FastLED.setBrightness(BRIGHTNESS);
 }
 
 void bpm2()
@@ -314,6 +322,7 @@ void bpm2()
   for( int i = 0; i < NUM_STRIPS*NUM_LEDS_PER_STRIP; i++) { //9948
     leds_flat[i] = ColorFromPalette(palette, gHue+(i*2), beat-gHue+(i*10));
   }
+  FastLED.setBrightness(BRIGHTNESS);
 }
 
 void juggle() {
@@ -327,6 +336,7 @@ void juggle() {
   for(int i=1;i<NUM_STRIPS;i++){                                 //Parallel fuer jeden Arm gleich
     memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP *sizeof(CRGB) );
   }
+  FastLED.setBrightness(BRIGHTNESS);
 }
 
 void juggle2() {
@@ -337,6 +347,7 @@ void juggle2() {
     leds_flat[beatsin16( i+7, 0, NUM_STRIPS*NUM_LEDS_PER_STRIP )] |= CHSV(dothue, 200, 255);
     dothue += 32;
   }
+  FastLED.setBrightness(BRIGHTNESS);
 }
 
 void reactonbeat() {
@@ -360,6 +371,7 @@ void reactonbeat() {
     on = 0;
     trigger =0;
   }
+  FastLED.setBrightness(BRIGHTNESS);
 }
 
 void reactonbeat2() {
@@ -383,6 +395,7 @@ void reactonbeat2() {
     on = 0;
     trigger=0;
   }
+  FastLED.setBrightness(BRIGHTNESS);
 }
 
 void goaround(){
@@ -392,7 +405,7 @@ void goaround(){
   for(int i = 0; i<NUM_STRIPS; i++){
     fill_gradient(leds[i], 0, CHSV( gHue, 255, scale8(sin8((i*32-beat)/2),minbright) ), NUM_LEDS_PER_STRIP, CHSV( gHue, 255, scale8(sin8((i*32-beat)/2),maxbright) ) );
   }
- 
+ FastLED.setBrightness(BRIGHTNESS);
   
 }
 
@@ -407,6 +420,7 @@ void ameise() {
       delay(100);
     }
   }
+  FastLED.setBrightness(BRIGHTNESS);
 }
 
 void spiral() {
@@ -426,6 +440,7 @@ void spiral() {
     FastLED.show();
     delay(100);
   }
+  FastLED.setBrightness(BRIGHTNESS);
 }
 
 void sort_numbers_8_strips() {
@@ -449,6 +464,7 @@ void sort_numbers_8_strips() {
       leds[x][i] = CRGB::Black;
     }
   }
+  FastLED.setBrightness(BRIGHTNESS);
   FastLED.show();
   delay(500);
 }
@@ -462,12 +478,12 @@ void rainbow_react()
   static unsigned long starttime;
   if (trigger && on==0){
     starttime=millis();
-    FastLED.setBrightness(int(3*BRIGHTNESS));
+    FastLED.setBrightness(int(1*BRIGHTNESS));
     trigger = 0;
     on = 1;
   }
   if((millis()-starttime>REACTONBEATDURATION) && on){
-    FastLED.setBrightness(int(1*BRIGHTNESS));
+    FastLED.setBrightness(int(0.3*BRIGHTNESS));
     on = 0;
     trigger=0;
   }
@@ -487,10 +503,10 @@ void PaletteColors_withGlitter_react(CRGBPalette16 currentPalette)
   int fadeduration=250;
   int timenow=millis();
   
-  FastLED.setBrightness(int(2*BRIGHTNESS));                     //Master-Brightness auf 2-fach
+  FastLED.setBrightness(int(1*BRIGHTNESS));                     //Master-Brightness auf 2-fach
   ParaPaletteColors(currentPalette);                             //Arme mit Palettenfarben fuellen
   for(int i=0; i< NUM_STRIPS*NUM_LEDS_PER_STRIP;i++){
-      leds_flat[i].nscale8_video( 128);                         //alle soeben gesetzten Regenbogenfarben in der Helligkeit halbieren, so dass sich Glitzer hervorhebt.
+      leds_flat[i].nscale8_video( 85);                         //alle soeben gesetzten Regenbogenfarben in der Helligkeit dritteln, so dass sich Glitzer hervorhebt.
   }
   
   
@@ -549,13 +565,13 @@ void PaletteColors_fade(CRGBPalette16 currentPalette)                         //
 
   if (trigger && on==0){
     starttime=timenow;
-    FastLED.setBrightness(int(3*BRIGHTNESS));
+    FastLED.setBrightness(int(1*BRIGHTNESS));
     trigger = 0;
     on = 1;
   }
   
   if((timenow-starttime<fadeduration)){
-    FastLED.setBrightness(int((3.0*(fadeduration-timenow+starttime)/fadeduration+1.0)*BRIGHTNESS));
+    FastLED.setBrightness(int((0.7*((fadeduration-timenow+starttime)/fadeduration)+0.3)*BRIGHTNESS));
 
   }
   if((timenow-starttime>REACTONBEATDURATION) && on){
@@ -601,7 +617,7 @@ void PaletteColors_bars(CRGBPalette16 currentPalette, int barduration)
   int timenow=millis();
   int n;
   
-  FastLED.setBrightness(int(2*BRIGHTNESS));
+  FastLED.setBrightness(int(BRIGHTNESS));
   
   if (trigger && on==0){    
     ParaPaletteColors(currentPalette);
@@ -610,11 +626,11 @@ void PaletteColors_bars(CRGBPalette16 currentPalette, int barduration)
     on = 1;
   }
  else if((timenow-starttime<barduration)){
-    n = int(float(timenow-starttime)/float(barduration)*8.0);
+    n = int(float(timenow-starttime)/float(barduration)*float(NUM_LEDS_PER_STRIP));
     ParaPaletteColors_bar(currentPalette, n);
   }
   else if(on==0){
-    ParaPaletteColors_bar(currentPalette, 9);
+    ParaPaletteColors_bar(currentPalette, float(NUM_LEDS_PER_STRIP));
   }
   if((timenow-starttime>REACTONBEATDURATION) && on){
     on = 0;
@@ -627,25 +643,25 @@ void PaletteColors_bars(CRGBPalette16 currentPalette, int barduration)
 void RainbowColors_bars_fast() 
 {
   int barduration = 250;
-  PaletteColors_bars_react(RainbowColors_p, barduration);
+  PaletteColors_bars(RainbowColors_p, barduration);
 }
 
 void LavaColors_bars_fast() 
 {
   int barduration = 250;
-  PaletteColors_bars_react(LavaColors_p, barduration);
+  PaletteColors_bars(LavaColors_p, barduration);
 }
 
 void OceanColors_bars_fast() 
 {
   int barduration = 250;
-  PaletteColors_bars_react(OceanColors_p, barduration);
+  PaletteColors_bars(OceanColors_p, barduration);
 }
 
 void ForestColors_bars_fast() 
 {
   int barduration = 250;
-  PaletteColors_bars_react(ForestColors_p, barduration);
+  PaletteColors_bars(ForestColors_p, barduration);
 }
 
 // functions with color palette: slow
@@ -653,23 +669,23 @@ void ForestColors_bars_fast()
 void RainbowColors_bars_slow() 
 {
   int barduration = 500;
-  PaletteColors_bars_react(RainbowColors_p, barduration);
+  PaletteColors_bars(RainbowColors_p, barduration);
 }
 
 void LavaColors_bars_slow() 
 {
   int barduration = 500;
-  PaletteColors_bars_react(LavaColors_p, barduration);
+  PaletteColors_bars(LavaColors_p, barduration);
 }
 
 void OceanColors_bars_slow() 
 {
   int barduration = 500;
-  PaletteColors_bars_react(OceanColors_p, barduration);
+  PaletteColors_bars(OceanColors_p, barduration);
 }
 
 void ForestColors_bars_slow() 
 {
   int barduration = 500;
-  PaletteColors_bars_react(ForestColors_p, barduration);
+  PaletteColors_bars(ForestColors_p, barduration);
 }
