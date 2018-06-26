@@ -84,11 +84,17 @@ void setup() {
 typedef void (*SimplePatternList[])();
 
 SimplePatternList gPatterns = {RainbowColors_fade, RainbowStripeColors_fade, OceanColors_fade, LavaColors_fade, ForestColors_fade, White_fade,
-RainbowColors_bars_fast, OceanColors_bars_fast, LavaColors_bars_fast, ForestColors_bars_fast,
-RainbowColors_bars_slow, OceanColors_bars_slow, LavaColors_bars_slow, ForestColors_bars_slow,
+RainbowColors_bars_fast, OceanColors_bars_fast, ForestColors_bars_fast,
+RainbowColors_bars_slow, OceanColors_bars_slow, ForestColors_bars_slow,
 RainbowColors_react, White_react,
 RainbowColors_withGlitter_react, RainbowStripeColors_withGlitter_react, OceanColors_withGlitter_react, LavaColors_withGlitter_react, ForestColors_withGlitter_react,
-rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm, goaround};
+rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm, goaround, rainbow2, rainbowWithGlitter2, confetti2, sinelon2, juggle2, bpm2 };
+//SimplePatternList gPatterns = {RainbowColors_fade, RainbowStripeColors_fade, OceanColors_fade, LavaColors_fade, ForestColors_fade, White_fade,
+//RainbowColors_bars_fast, OceanColors_bars_fast, LavaColors_bars_fast, ForestColors_bars_fast,
+//RainbowColors_bars_slow, OceanColors_bars_slow, LavaColors_bars_slow, ForestColors_bars_slow,
+//RainbowColors_react, White_react,
+//RainbowColors_withGlitter_react, RainbowStripeColors_withGlitter_react, OceanColors_withGlitter_react, LavaColors_withGlitter_react, ForestColors_withGlitter_react,
+//rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm, goaround};
 
 // String-Liste der Namen dieser Pattern um diese dann auf dem Serial Monitor ausgeben zu können. Muss manuell geaendert werden.
 const char *PatternNames[] = { "reactonbeat", "rainbow", "rainbowWithGlitter", "confetti", "sinelon", "juggle", "bpm" , "rainbow2", "rainbowWithGlitter2", "confetti2", "sinelon2", "juggle2", "bpm2" , "reactonbeat", "goaround"};
