@@ -83,10 +83,10 @@ void setup() {
 // List of patterns to cycle through.  Each is defined as a separate function below.
 typedef void (*SimplePatternList[])();
 
-SimplePatternList gPatterns = {RainbowColors_fade, RainbowStripeColors_fade, OceanColors_fade, LavaColors_fade, ForestColors_fade,
+SimplePatternList gPatterns = {RainbowColors_fade, RainbowStripeColors_fade, OceanColors_fade, LavaColors_fade, ForestColors_fade, White_fade,
 RainbowColors_bars_fast, OceanColors_bars_fast, LavaColors_bars_fast, ForestColors_bars_fast,
 RainbowColors_bars_slow, OceanColors_bars_slow, LavaColors_bars_slow, ForestColors_bars_slow,
-RainbowColors_react,
+RainbowColors_react, White_react,
 RainbowColors_withGlitter_react, RainbowStripeColors_withGlitter_react, OceanColors_withGlitter_react, LavaColors_withGlitter_react, ForestColors_withGlitter_react,
 rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm, goaround};
 
@@ -510,7 +510,7 @@ void White_react()
     on = 1;
   }
   if((millis()-starttime>REACTONBEATDURATION) && on){
-    FastLED.setBrightness(int(0.3*BRIGHTNESS));
+    FastLED.setBrightness(int(0*BRIGHTNESS));
     on = 0;
     trigger=0;
   }
@@ -660,7 +660,7 @@ void White_fade()
   }
   
   if((timenow-starttime<fadeduration)){
-    FastLED.setBrightness(int((0.7*((fadeduration-timenow+starttime)/fadeduration)+0.3)*BRIGHTNESS));
+    FastLED.setBrightness(int((1*((fadeduration-timenow+starttime)/fadeduration)+0.0)*BRIGHTNESS));
 
   }
   if((timenow-starttime>REACTONBEATDURATION) && on){
