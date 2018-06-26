@@ -615,7 +615,7 @@ void PaletteColors_fade(CRGBPalette16 currentPalette)                         //
   }
   
   if((timenow-starttime<fadeduration)){
-    FastLED.setBrightness(int((0.7*((fadeduration-timenow+starttime)/fadeduration)+0.3)*BRIGHTNESS));
+    FastLED.setBrightness(int((0.7*((fadeduration-timenow+starttime)/float(fadeduration))+0.3)*BRIGHTNESS));
 
   }
   if((timenow-starttime>REACTONBEATDURATION) && on){
@@ -666,7 +666,7 @@ void White_fade()
   }
   
   if((timenow-starttime<fadeduration)){
-    FastLED.setBrightness(int((1*((fadeduration-timenow+starttime)/fadeduration)+0.0)*BRIGHTNESS));
+    FastLED.setBrightness(int((1*((fadeduration-timenow+starttime)/float(fadeduration))+0.0)*BRIGHTNESS));
 
   }
   if((timenow-starttime>REACTONBEATDURATION) && on){
