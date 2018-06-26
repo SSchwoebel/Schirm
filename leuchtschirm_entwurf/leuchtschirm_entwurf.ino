@@ -83,7 +83,12 @@ void setup() {
 // List of patterns to cycle through.  Each is defined as a separate function below.
 typedef void (*SimplePatternList[])();
 
-SimplePatternList gPatterns = {RainbowColors_bars_fast, RainbowColors_bars_slow, OceanColors_bars_fast, OceanColors_bars_slow, rainbow_react,rainbow_fade,LavaColors_fade, OceanColors_fade,  ForestColors_fade,RainbowStripeColors_fade, rainbowWithGlitter_react, LavaColors_withGlitter_react, OceanColors_withGlitter_react, ForestColors_withGlitter_react, RainbowStripeColors_withGlitter_react, reactonbeat2, reactonbeat, rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm , rainbow2, rainbowWithGlitter2, confetti2, sinelon2, juggle2, bpm2 , reactonbeat, goaround};
+SimplePatternList gPatterns = {RainbowColors_fade, RainbowStripeColors_fade, OceanColors_fade, LavaColors_fade, ForestColors_fade,
+RainbowColors_bars_fast, OceanColors_bars_fast, LavaColors_bars_fast, ForestColors_bars_fast,
+RainbowColors_bars_slow, OceanColors_bars_slow, LavaColors_bars_slow, ForestColors_bars_slow,
+RainbowColors_react,
+RainbowColors_withGlitter_react, RainbowStripeColors_withGlitter_react, OceanColors_withGlitter_react, LavaColors_withGlitter_react, ForestColors_withGlitter_react,
+rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm, goaround};
 
 // String-Liste der Namen dieser Pattern um diese dann auf dem Serial Monitor ausgeben zu können. Muss manuell geaendert werden.
 const char *PatternNames[] = { "reactonbeat", "rainbow", "rainbowWithGlitter", "confetti", "sinelon", "juggle", "bpm" , "rainbow2", "rainbowWithGlitter2", "confetti2", "sinelon2", "juggle2", "bpm2" , "reactonbeat", "goaround"};
@@ -473,7 +478,7 @@ void setTrigger() {
   trigger=1;
 }
 
-void rainbow_react() 
+void RainbowColors_react() 
 {
   static unsigned long starttime;
   if (trigger && on==0){
@@ -493,6 +498,35 @@ void rainbow_react()
   for(int i=1;i<NUM_STRIPS;i++){                                 //Parallel fuer jeden Arm gleich
     memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP *sizeof(CRGB) );
   }
+}
+
+void White_react() 
+{
+  static unsigned long starttime;
+  if (trigger && on==0){
+    starttime=millis();
+    FastLED.setBrightness(int(1*BRIGHTNESS));
+    trigger = 0;
+    on = 1;
+  }
+  if((millis()-starttime>REACTONBEATDURATION) && on){
+    FastLED.setBrightness(int(0.3*BRIGHTNESS));
+    on = 0;
+    trigger=0;
+  }
+  
+  // FastLED's built-in rainbow generator
+  fill_white();
+  for(int i=1;i<NUM_STRIPS;i++){                                 //Parallel fuer jeden Arm gleich
+    memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP *sizeof(CRGB) );
+  }
+}
+
+void fill_white()
+{
+    for(int i = 0; i < NUM_LEDS_PER_STRIP; i++) {
+      leds[0][i] = CRGB::White;
+    }
 }
 
 //-------------------------------------------------------------------
@@ -526,6 +560,10 @@ void PaletteColors_withGlitter_react(CRGBPalette16 currentPalette)
   }
 }
 
+void RainbowColors_withGlitter_react() 
+{ 
+  PaletteColors_withGlitter_react(RainbowColors_p) ;
+}
 
 void LavaColors_withGlitter_react() 
 { 
@@ -581,7 +619,7 @@ void PaletteColors_fade(CRGBPalette16 currentPalette)                         //
   ParaPaletteColors(currentPalette);  
 }
 
-void rainbow_fade() 
+void RainbowColors_fade() 
 {
   PaletteColors_fade(RainbowColors_p) ;
 }
@@ -605,6 +643,34 @@ void ForestColors_fade()
 void RainbowStripeColors_fade() 
 { 
   PaletteColors_fade(RainbowStripeColors_p) ;
+}
+
+void White_fade()                         
+{
+  
+  static unsigned long starttime;
+  int fadeduration=250;
+  int timenow=millis();
+
+  if (trigger && on==0){
+    starttime=timenow;
+    FastLED.setBrightness(int(1*BRIGHTNESS));
+    trigger = 0;
+    on = 1;
+  }
+  
+  if((timenow-starttime<fadeduration)){
+    FastLED.setBrightness(int((0.7*((fadeduration-timenow+starttime)/fadeduration)+0.3)*BRIGHTNESS));
+
+  }
+  if((timenow-starttime>REACTONBEATDURATION) && on){
+    on = 0;
+    trigger=0;
+  }
+  fill_white();
+  for(int i=1;i<NUM_STRIPS;i++){                                 //Parallel fuer jeden Arm gleich
+    memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP *sizeof(CRGB) );
+  }
 }
 
 //-------------------------------------------------------------------
