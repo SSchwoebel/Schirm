@@ -130,8 +130,7 @@ void loop()
   nextPatternSwitch();
   
   
-  // set master brightness control with poti
-  EVERY_N_MILLISECONDS(100){ BRIGHTNESS=analogRead(brightnessPoti)/8; }
+  EVERY_N_MILLISECONDS(100){ BRIGHTNESS=analogRead(brightnessPoti)/8;}
   
 }
 
@@ -493,11 +492,15 @@ void RainbowColors_react()
     trigger = 0;
     on = 1;
   }
-  if((millis()-starttime>REACTONBEATDURATION) && on){
+  else if((millis()-starttime>REACTONBEATDURATION) && on){
     FastLED.setBrightness(int(0.3*BRIGHTNESS));
     on = 0;
     trigger=0;
   }
+  else if(!on){
+    FastLED.setBrightness(int(0.3*BRIGHTNESS));
+  }
+  
   
   // FastLED's built-in rainbow generator
   fill_rainbow( leds[0],NUM_LEDS_PER_STRIP, gHue, 7);
@@ -515,11 +518,15 @@ void White_react()
     trigger = 0;
     on = 1;
   }
-  if((millis()-starttime>REACTONBEATDURATION) && on){
+  else if((millis()-starttime>REACTONBEATDURATION) && on){
     FastLED.setBrightness(int(0*BRIGHTNESS));
     on = 0;
     trigger=0;
   }
+  else if(!on){
+    FastLED.setBrightness(int(0*BRIGHTNESS));
+  }
+    
   
   // FastLED's built-in rainbow generator
   fill_white();
@@ -622,6 +629,9 @@ void PaletteColors_fade(CRGBPalette16 currentPalette)                         //
     on = 0;
     trigger=0;
   }
+  if(!on){
+    FastLED.setBrightness(int(0.3*BRIGHTNESS));
+  }
   ParaPaletteColors(currentPalette);  
 }
 
@@ -672,6 +682,9 @@ void White_fade()
   if((timenow-starttime>REACTONBEATDURATION) && on){
     on = 0;
     trigger=0;
+  }
+  if (!on){
+    FastLED.setBrightness(int(0*BRIGHTNESS));
   }
   fill_white();
   for(int i=1;i<NUM_STRIPS;i++){                                 //Parallel fuer jeden Arm gleich
