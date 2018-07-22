@@ -15,7 +15,7 @@ FASTLED_USING_NAMESPACE
 #ifdef AUFTRITT
 #define NUM_LEDS_PER_STRIP 30
 #define BARS_INSIDE 1
-#define DELTA_HUE 3
+#define DELTA_HUE -3
 #endif
 #ifndef AUFTRITT
 #define NUM_LEDS_PER_STRIP 9
@@ -474,12 +474,12 @@ void sort_numbers_8_strips() {
   // This inner loop will go over each led in the current strip, one at a time
   for(int i = 0; i < NUM_LEDS_PER_STRIP; i++) {
     leds[0][i] = CRGB(255,255,255);
-    leds[1][i] = CRGB::Red;
-    leds[2][i] = CRGB::Violet;
-    leds[3][i] = CRGB::Blue;
-    leds[4][i] = CRGB::Green;
-    leds[5][i] = CRGB::Yellow;
-    leds[6][i] = CRGB::Orange;
+    leds[1][i] = CRGB::Violet;
+    leds[2][i] = CRGB::Blue;
+    leds[3][i] = CRGB::Green;
+    leds[4][i] = CRGB::Yellow;
+    leds[5][i] = CRGB::Orange;
+    leds[6][i] = CRGB::Red;
     leds[7][i] = CRGB(0,0,0);
     }
     FastLED.show();
