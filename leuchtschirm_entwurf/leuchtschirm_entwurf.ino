@@ -12,7 +12,7 @@ FASTLED_USING_NAMESPACE
 
 #define DATA_PINS_START    4
 #define NUM_STRIPS 8
-#define NUM_LEDS_PER_STRIP 9
+#define NUM_LEDS_PER_STRIP 30
 CRGB leds[NUM_STRIPS][NUM_LEDS_PER_STRIP];
 CRGB *leds_flat;                   //Pointer zur Aufnahme der Anfangsadresse des 2D-Arrays, falls man doch alle LEDS als ein 1D-array ansprechen moechte
 
@@ -30,6 +30,7 @@ const int knock_interrupt_pin=2;
 const int switch_interrupt_pin=3;
 //const int knockDigital=13; 
 const int brightnessPoti = A0; // brightness poti is connected to analog pin 0
+const int bars_inside = 1;
 
 
 void setup() {
@@ -39,14 +40,14 @@ void setup() {
 
   // tell FastLED about the LED strip configuration
   // pin seems to have to be calculated at compile time.....
-  FastLED.addLeds<WS2811,DATA_PINS_START+0,BRG>(leds[0],NUM_LEDS_PER_STRIP);
-  FastLED.addLeds<WS2811,DATA_PINS_START+1,BRG>(leds[1],NUM_LEDS_PER_STRIP);
-  FastLED.addLeds<WS2811,DATA_PINS_START+2,BRG>(leds[2],NUM_LEDS_PER_STRIP);
-  FastLED.addLeds<WS2811,DATA_PINS_START+3,BRG>(leds[3],NUM_LEDS_PER_STRIP);
-  FastLED.addLeds<WS2811,DATA_PINS_START+4,BRG>(leds[4],NUM_LEDS_PER_STRIP);
-  FastLED.addLeds<WS2811,DATA_PINS_START+5,BRG>(leds[5],NUM_LEDS_PER_STRIP);
-  FastLED.addLeds<WS2811,DATA_PINS_START+6,BRG>(leds[6],NUM_LEDS_PER_STRIP);
-  FastLED.addLeds<WS2811,DATA_PINS_START+7,BRG>(leds[7],NUM_LEDS_PER_STRIP);
+  FastLED.addLeds<WS2812B,DATA_PINS_START+0,GRB>(leds[0],NUM_LEDS_PER_STRIP);//BRG
+  FastLED.addLeds<WS2812B,DATA_PINS_START+1,RGB>(leds[1],NUM_LEDS_PER_STRIP);
+  FastLED.addLeds<WS2812B,DATA_PINS_START+2,RGB>(leds[2],NUM_LEDS_PER_STRIP);
+  FastLED.addLeds<WS2812B,DATA_PINS_START+3,RGB>(leds[3],NUM_LEDS_PER_STRIP);
+  FastLED.addLeds<WS2812B,DATA_PINS_START+4,RGB>(leds[4],NUM_LEDS_PER_STRIP);
+  FastLED.addLeds<WS2812B,DATA_PINS_START+5,RGB>(leds[5],NUM_LEDS_PER_STRIP);
+  FastLED.addLeds<WS2812B,DATA_PINS_START+6,RGB>(leds[6],NUM_LEDS_PER_STRIP);
+  FastLED.addLeds<WS2812B,DATA_PINS_START+7,RGB>(leds[7],NUM_LEDS_PER_STRIP);
   // set master brightness control
   BRIGHTNESS=analogRead(brightnessPoti)/8;
   FastLED.setBrightness(BRIGHTNESS);
@@ -83,7 +84,7 @@ void setup() {
 // List of patterns to cycle through.  Each is defined as a separate function below.
 typedef void (*SimplePatternList[])();
 
-SimplePatternList gPatterns = {RainbowColors_fade, RainbowStripeColors_fade, OceanColors_fade, LavaColors_fade, ForestColors_fade, White_fade,
+SimplePatternList gPatterns = {sort_numbers_8_strips, RainbowColors_fade, RainbowStripeColors_fade, OceanColors_fade, LavaColors_fade, ForestColors_fade, White_fade,
 RainbowColors_bars_fast, OceanColors_bars_fast, ForestColors_bars_fast,
 RainbowColors_bars_slow, OceanColors_bars_slow, ForestColors_bars_slow,
 RainbowColors_react, White_react,
@@ -178,7 +179,7 @@ void fill_PaletteColors(struct CRGB *pFirstLED, int numToFill,  CRGBPalette16 pa
 
 void ParaPaletteColors(CRGBPalette16 palette)                                      //Parallel jeden Arm mit den Farben aus der currentPalette fuellen
 {
-  fill_PaletteColors( leds[0],NUM_LEDS_PER_STRIP, palette, gHue, 7);
+  fill_PaletteColors( leds[0],NUM_LEDS_PER_STRIP, palette, gHue, 3);
   for(int i=1;i<NUM_STRIPS;i++){                                 //Parallel fuer jeden Arm gleich
     memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP *sizeof(CRGB) );
   }
@@ -187,8 +188,15 @@ void ParaPaletteColors(CRGBPalette16 palette)                                   
 void ParaPaletteColors_bar(CRGBPalette16 palette, int n)                                      //Parallel jeden Arm mit den Farben aus der currentPalette fuellen
 {
   fill_PaletteColors( leds[0],NUM_LEDS_PER_STRIP, palette, gHue, 7);
-  for(int i=0; i<n; i++){
-    leds[0][i] = CRGB::Black;
+  if(bars_inside){    
+    for(int i=NUM_LEDS_PER_STRIP-1; i>=NUM_LEDS_PER_STRIP-n; i--){
+      leds[0][i] = CRGB::Black;
+    }
+  }
+  else {
+    for(int i=0; i<n; i++){
+      leds[0][i] = CRGB::Black;
+    }
   }
   for(int i=1;i<NUM_STRIPS;i++){                                 //Parallel fuer jeden Arm gleich
     memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP *sizeof(CRGB) );
@@ -715,7 +723,7 @@ void PaletteColors_bars(CRGBPalette16 currentPalette, int barduration)
     ParaPaletteColors_bar(currentPalette, n);
   }
   else if(on==0){
-    ParaPaletteColors_bar(currentPalette, float(NUM_LEDS_PER_STRIP));
+    ParaPaletteColors_bar(currentPalette, NUM_LEDS_PER_STRIP);
   }
   if((timenow-starttime>REACTONBEATDURATION) && on){
     on = 0;
