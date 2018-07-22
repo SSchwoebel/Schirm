@@ -9,10 +9,20 @@ FASTLED_USING_NAMESPACE
 // albi sagt hallo
 // auch yannic gruesst die Welt
 
-
+#define AUFTRITT
 #define DATA_PINS_START    4
 #define NUM_STRIPS 8
+#ifdef AUFTRITT
 #define NUM_LEDS_PER_STRIP 30
+#define BARS_INSIDE 1
+#define DELTA_HUE 3
+#endif
+#ifndef AUFTRITT
+#define NUM_LEDS_PER_STRIP 9
+#define BARS_INSIDE 0
+#define DELTA_HUE 7
+#endif
+
 CRGB leds[NUM_STRIPS][NUM_LEDS_PER_STRIP];
 CRGB *leds_flat;                   //Pointer zur Aufnahme der Anfangsadresse des 2D-Arrays, falls man doch alle LEDS als ein 1D-array ansprechen moechte
 
@@ -30,8 +40,6 @@ const int knock_interrupt_pin=2;
 const int switch_interrupt_pin=3;
 //const int knockDigital=13; 
 const int brightnessPoti = A0; // brightness poti is connected to analog pin 0
-const int bars_inside = 1;
-
 
 void setup() {
   delay(3000); // 3 second delay for recovery
@@ -179,7 +187,7 @@ void fill_PaletteColors(struct CRGB *pFirstLED, int numToFill,  CRGBPalette16 pa
 
 void ParaPaletteColors(CRGBPalette16 palette)                                      //Parallel jeden Arm mit den Farben aus der currentPalette fuellen
 {
-  fill_PaletteColors( leds[0],NUM_LEDS_PER_STRIP, palette, gHue, 3);
+  fill_PaletteColors( leds[0],NUM_LEDS_PER_STRIP, palette, gHue, DELTA_HUE);
   for(int i=1;i<NUM_STRIPS;i++){                                 //Parallel fuer jeden Arm gleich
     memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP *sizeof(CRGB) );
   }
@@ -187,8 +195,8 @@ void ParaPaletteColors(CRGBPalette16 palette)                                   
 
 void ParaPaletteColors_bar(CRGBPalette16 palette, int n)                                      //Parallel jeden Arm mit den Farben aus der currentPalette fuellen
 {
-  fill_PaletteColors( leds[0],NUM_LEDS_PER_STRIP, palette, gHue, 7);
-  if(bars_inside){    
+  fill_PaletteColors( leds[0],NUM_LEDS_PER_STRIP, palette, gHue, DELTA_HUE);
+  if(BARS_INSIDE){    
     for(int i=NUM_LEDS_PER_STRIP-1; i>=NUM_LEDS_PER_STRIP-n; i--){
       leds[0][i] = CRGB::Black;
     }
@@ -206,7 +214,7 @@ void ParaPaletteColors_bar(CRGBPalette16 palette, int n)                        
 void rainbow() 
 {
   // FastLED's built-in rainbow generator
-  fill_rainbow( leds[0],NUM_LEDS_PER_STRIP, gHue, 7);
+  fill_rainbow( leds[0],NUM_LEDS_PER_STRIP, gHue, DELTA_HUE);
   for(int i=1;i<NUM_STRIPS;i++){                                 //Parallel fuer jeden Arm gleich
     memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP *sizeof(CRGB) );
   }
@@ -217,7 +225,7 @@ void rainbow_bar(int n)
 {
   //n determines the amount of black LEDs
   // FastLED's built-in rainbow generator
-  fill_rainbow( leds[0],NUM_LEDS_PER_STRIP, gHue, 7);
+  fill_rainbow( leds[0],NUM_LEDS_PER_STRIP, gHue, DELTA_HUE);
   for(int i=0; i<n; i++){
     leds[0][i] = CRGB::Black;
   }
@@ -230,7 +238,7 @@ void rainbow_bar(int n)
 void rainbow2() 
 {
   // FastLED's built-in rainbow generator
-  fill_rainbow( leds_flat,NUM_STRIPS*NUM_LEDS_PER_STRIP, gHue, 7);
+  fill_rainbow( leds_flat,NUM_STRIPS*NUM_LEDS_PER_STRIP, gHue, DELTA_HUE);
   FastLED.setBrightness(BRIGHTNESS);
 }
 
@@ -511,7 +519,7 @@ void RainbowColors_react()
   
   
   // FastLED's built-in rainbow generator
-  fill_rainbow( leds[0],NUM_LEDS_PER_STRIP, gHue, 7);
+  fill_rainbow( leds[0],NUM_LEDS_PER_STRIP, gHue, DELTA_HUE);
   for(int i=1;i<NUM_STRIPS;i++){                                 //Parallel fuer jeden Arm gleich
     memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP *sizeof(CRGB) );
   }
