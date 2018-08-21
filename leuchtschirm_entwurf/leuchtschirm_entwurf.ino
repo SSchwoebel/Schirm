@@ -9,18 +9,20 @@ FASTLED_USING_NAMESPACE
 // albi sagt hallo
 // auch yannic gruesst die Welt
 
-#define AUFTRITT
+//#define AUFTRITT
 #define DATA_PINS_START    4
 #define NUM_STRIPS 8
 #ifdef AUFTRITT
 #define NUM_LEDS_PER_STRIP 30
 #define BARS_INSIDE 1
 #define DELTA_HUE -3
+#define GLITTER_N 30
 #endif
 #ifndef AUFTRITT
 #define NUM_LEDS_PER_STRIP 9
 #define BARS_INSIDE 0
 #define DELTA_HUE 7
+#define GLITTER_N 10
 #endif
 
 CRGB leds[NUM_STRIPS][NUM_LEDS_PER_STRIP];
@@ -43,19 +45,19 @@ const int brightnessPoti = A0; // brightness poti is connected to analog pin 0
 
 void setup() {
   delay(3000); // 3 second delay for recovery
-  Serial.begin(9600);    //richte serielle Schnittstelle ein fuer das Debugging
+  //Serial.begin(9600);    //richte serielle Schnittstelle ein fuer das Debugging
   
 
   // tell FastLED about the LED strip configuration
   // pin seems to have to be calculated at compile time.....
   FastLED.addLeds<WS2812B,DATA_PINS_START+0,GRB>(leds[0],NUM_LEDS_PER_STRIP);//BRG
-  FastLED.addLeds<WS2812B,DATA_PINS_START+1,RGB>(leds[1],NUM_LEDS_PER_STRIP);
-  FastLED.addLeds<WS2812B,DATA_PINS_START+2,RGB>(leds[2],NUM_LEDS_PER_STRIP);
-  FastLED.addLeds<WS2812B,DATA_PINS_START+3,RGB>(leds[3],NUM_LEDS_PER_STRIP);
-  FastLED.addLeds<WS2812B,DATA_PINS_START+4,RGB>(leds[4],NUM_LEDS_PER_STRIP);
-  FastLED.addLeds<WS2812B,DATA_PINS_START+5,RGB>(leds[5],NUM_LEDS_PER_STRIP);
-  FastLED.addLeds<WS2812B,DATA_PINS_START+6,RGB>(leds[6],NUM_LEDS_PER_STRIP);
-  FastLED.addLeds<WS2812B,DATA_PINS_START+7,RGB>(leds[7],NUM_LEDS_PER_STRIP);
+  FastLED.addLeds<WS2812B,DATA_PINS_START+1,GRB>(leds[1],NUM_LEDS_PER_STRIP);
+  FastLED.addLeds<WS2812B,DATA_PINS_START+2,GRB>(leds[2],NUM_LEDS_PER_STRIP);
+  FastLED.addLeds<WS2812B,DATA_PINS_START+3,GRB>(leds[3],NUM_LEDS_PER_STRIP);
+  FastLED.addLeds<WS2812B,DATA_PINS_START+4,GRB>(leds[4],NUM_LEDS_PER_STRIP);
+  FastLED.addLeds<WS2812B,DATA_PINS_START+5,GRB>(leds[5],NUM_LEDS_PER_STRIP);
+  FastLED.addLeds<WS2812B,DATA_PINS_START+6,GRB>(leds[6],NUM_LEDS_PER_STRIP);
+  FastLED.addLeds<WS2812B,DATA_PINS_START+7,GRB>(leds[7],NUM_LEDS_PER_STRIP);
   // set master brightness control
   BRIGHTNESS=analogRead(brightnessPoti)/8;
   FastLED.setBrightness(BRIGHTNESS);
@@ -85,19 +87,20 @@ void setup() {
       }
      }
   
-  Serial.begin(9600);       // use the serial port
+  //Serial.begin(9600);       // use the serial port
 }
 
 
 // List of patterns to cycle through.  Each is defined as a separate function below.
 typedef void (*SimplePatternList[])();
 
-SimplePatternList gPatterns = {sort_numbers_8_strips, RainbowColors_fade, RainbowStripeColors_fade, OceanColors_fade, LavaColors_fade, ForestColors_fade, White_fade,
+SimplePatternList gPatterns = {RainbowColors_fade, RainbowStripeColors_fade, OceanColors_fade, LavaColors_fade, ForestColors_fade, //White_fade,
 RainbowColors_bars_fast, OceanColors_bars_fast, ForestColors_bars_fast,
 RainbowColors_bars_slow, OceanColors_bars_slow, ForestColors_bars_slow,
-RainbowColors_react, White_react,
+//RainbowColors_react, White_react,
 RainbowColors_withGlitter_react, RainbowStripeColors_withGlitter_react, OceanColors_withGlitter_react, LavaColors_withGlitter_react, ForestColors_withGlitter_react,
 rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm, goaround, rainbow2, rainbowWithGlitter2, confetti2, sinelon2, juggle2, bpm2 };
+int n_patterns = 16;
 //SimplePatternList gPatterns = {RainbowColors_fade, RainbowStripeColors_fade, OceanColors_fade, LavaColors_fade, ForestColors_fade, White_fade,
 //RainbowColors_bars_fast, OceanColors_bars_fast, LavaColors_bars_fast, ForestColors_bars_fast,
 //RainbowColors_bars_slow, OceanColors_bars_slow, LavaColors_bars_slow, ForestColors_bars_slow,
@@ -135,7 +138,7 @@ void loop()
 
   // do some periodic updates
   EVERY_N_MILLISECONDS( 20 ) { gHue++; } // slowly cycle the "base color" through the rainbow
-  //EVERY_N_SECONDS( 3000 ) { nextPattern(); } // change patterns periodically
+  EVERY_N_SECONDS( 30 ) { nextPattern_random(); } // change patterns periodically
   nextPatternSwitch();
   
   
@@ -150,9 +153,21 @@ void nextPattern()
   // add one to the current pattern number, and wrap around at the end
   gCurrentPatternNumber = (gCurrentPatternNumber + 1) % ARRAY_SIZE( gPatterns);
   //Falls das Array von Pattern Namen gleich lang ist wie das der Pattern-Funktionen (deutete auf gewissenhaftes Ausfuellen hin), dann Namen ausgeben
-  if(ARRAY_SIZE(gPatterns)==ARRAY_SIZE(PatternNames)){
-    Serial.println(PatternNames[gCurrentPatternNumber]);
-  }
+  //if(ARRAY_SIZE(gPatterns)==ARRAY_SIZE(PatternNames)){
+  //  Serial.println(PatternNames[gCurrentPatternNumber]);
+  //}
+}
+
+void nextPattern_random()
+{
+  // add one to the current pattern number, and wrap around at the end
+  int n = random16(n_patterns);
+  // add one to the current pattern number, and wrap around at the end
+  gCurrentPatternNumber = (gCurrentPatternNumber + n) % ARRAY_SIZE( gPatterns);
+  //Falls das Array von Pattern Namen gleich lang ist wie das der Pattern-Funktionen (deutete auf gewissenhaftes Ausfuellen hin), dann Namen ausgeben
+  //if(ARRAY_SIZE(gPatterns)==ARRAY_SIZE(PatternNames)){
+  //  Serial.println(PatternNames[gCurrentPatternNumber]);
+  //}
 }
 
 void nextPatternSwitch()
@@ -436,7 +451,7 @@ void goaround(){
 }
 
 void ameise() {
-  Serial.println("ameise");
+  //Serial.println("ameise");
   for(int x = 0; x < NUM_STRIPS; x++) {
     // This inner loop will go over each led in the current strip, one at a time
     for(int i = 0; i < NUM_LEDS_PER_STRIP; i++) {
@@ -450,7 +465,7 @@ void ameise() {
 }
 
 void spiral() {
-  Serial.println("spiral");
+  //Serial.println("spiral");
   for(int x = 0; x < NUM_LEDS_PER_STRIP; x++) {
     for(int k = 0; k < NUM_STRIPS; k++) {
       // This inner loop will go over each led in the current 
@@ -470,7 +485,7 @@ void spiral() {
 }
 
 void sort_numbers_8_strips() {
-  Serial.println("sort");
+  //Serial.println("sort");
   // This inner loop will go over each led in the current strip, one at a time
   for(int i = 0; i < NUM_LEDS_PER_STRIP; i++) {
     leds[0][i] = CRGB(255,255,255);
@@ -575,12 +590,12 @@ void PaletteColors_withGlitter_react(CRGBPalette16 currentPalette)
   
   if (trigger && on==0){
     starttime=timenow;
-    addGlitter_more(100, 10);
+    addGlitter_more(100, GLITTER_N);
     trigger = 0;
     on = 1;
   }
   if(on){
-    addGlitter_more(100, 10);
+    addGlitter_more(100, GLITTER_N);
 
   }
   if((timenow-starttime>REACTONBEATDURATION) && on){
@@ -648,7 +663,10 @@ void PaletteColors_fade(CRGBPalette16 currentPalette)                         //
   if(!on){
     FastLED.setBrightness(int(0.3*BRIGHTNESS));
   }
-  ParaPaletteColors(currentPalette);  
+  ParaPaletteColors(currentPalette);                              //Arme mit Palettenfarben fuellen
+  for(int i=0; i< NUM_STRIPS*NUM_LEDS_PER_STRIP;i++){
+      leds_flat[i].nscale8_video( 255);                         //ganz boeser hack von sarah, tut nichts, entfernt ruckeln
+  } 
 }
 
 void RainbowColors_fade() 
@@ -732,6 +750,9 @@ void PaletteColors_bars(CRGBPalette16 currentPalette, int barduration)
   }
   else if(on==0){
     ParaPaletteColors_bar(currentPalette, NUM_LEDS_PER_STRIP);
+  }
+  for(int i=0; i< NUM_STRIPS*NUM_LEDS_PER_STRIP;i++){
+      leds_flat[i].nscale8_video( 85);                         //ganz boeser hack von sarah, tut nichts, entfernt ruckeln
   }
   if((timenow-starttime>REACTONBEATDURATION) && on){
     on = 0;
