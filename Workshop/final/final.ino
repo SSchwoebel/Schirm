@@ -1,6 +1,11 @@
 // Workshop LED Kunst und digitale Emanzipation
 // Last Step
 
+//TODO:
+//-think about replacing all compiler directives with global variables
+//-create the step-by-step versions
+
+
 #include "FastLED.h"
 #include <avr/interrupt.h>
 #include "pins_arduino.h"
@@ -9,39 +14,47 @@ FASTLED_USING_NAMESPACE          //Makro von FastLED. Muss ausgefuehrt werden, d
 
 #define NUM_LEDS_PER_STRIP 10    //Anzahl der LEDs im Streifen
 #define DELTA_HUE 7              //steuert Breite des Farbverlaufs der RainbowColors
-#define BRIGHTNESS 200           //zum Einstellen der Helligkeit des LED (Maximalwert bei Mustern mit wechselnder Helligkeit
+#define BRIGHTNESS 100           //zum Einstellen der Helligkeit des LED (Maximalwert bei Mustern mit wechselnder Helligkeit
 #define FRAMES_PER_SECOND  100
 #define REACTONBEATDURATION 50   //wie lange leuchten nach beat in ms
 #define SWITCH_DEADTIME 500      //Totzeit des Tasters in ms. Um Prellen zu verhindern.
 
 CRGB leds[NUM_LEDS_PER_STRIP];
 
-const uint8_t BRIGHTNESS;
-const uint8_t gHue = 0; // rotating "base color" used by many of the patterns
 const uint8_t barduration = 250; //persistence time of the bar in RainbowColors_bars
 
 const int switch_interrupt_pin=2; 
 const int knock_interrupt_pin=3;
 const int LED_pin=5;
-const int LED_stipe_pin=7;
+const int LED_stripe_pin=7;
 
-
+uint8_t gHue = 0; // rotating "base color" used by many of the patterns
 uint8_t gCurrentPatternNumber = 0; // Index number of which pattern is current
 uint8_t on = 0;    //used to set state of a pattern as "on" during REACTONBEATDURATION
-uint8_t switchPressed=0;  //used to set state of trigger as pressed during deadtime
+uint8_t switchPressed=0;  //used to set state of switch as pressed during deadtime
 
 volatile uint8_t knockTrigger=0;  //Globaler Trigger Wert, wird von Interrupt-Funktion "setKnockTrigger" genutzt um Trigger an loop weiterzugeben. Muss dazu als "volatile" definiert werden.
 volatile uint8_t switchTrigger=0;  //Globaler Trigger Wert, wird von Interrupt-Funktion "setSwitchTrigger" genutzt um Trigger an loop weiterzugeben. Muss dazu als "volatile" definiert werden.
 
 // List of patterns to cycle through.  Each is defined as a separate function below.
 typedef void (*SimplePatternList[])();
-SimplePatternList gPatterns = {RainbowColors_react, White_react, RainbowColors_bars_fast};
+SimplePatternList gPatterns = {RainbowColors_react, White_react, RainbowColors_bars};
 const int number_of_patterns = 3;
 
 
 void setup() {
-  delay(3000); // 3 second delay for recovery
+  delay(3000); // delay for recovery
   
+  //set interrupt pin for Knock Sensor
+  //pinMode(knock_interrupt_pin,INPUT);
+  //attachInterrupt(knock_interrupt_pin-2,setKnockTrigger,HIGH);
+  
+  //set interrupt pin for Pattern Switch
+  pinMode(switch_interrupt_pin,INPUT_PULLUP);
+  attachInterrupt(switch_interrupt_pin-2,setSwitchTrigger,LOW); 
+  
+  //set output pins
+  pinMode(LED_pin,OUTPUT);
 
   // tell FastLED about the LED strip configuration
   // pin seems to have to be calculated at compile time.....
@@ -49,18 +62,11 @@ void setup() {
 
   // set master brightness control
   FastLED.setBrightness(BRIGHTNESS);
-    
-  //set interrupt pin for Knock Sensor
-  pinMode(knock_interrupt_pin,INPUT);
-  attachInterrupt(knock_interrupt_pin-2,setKnockTrigger,HIGH);
-  
-  //set interrupt pin for Pattern Switch
-  pinMode(switch_interrupt_pin,INPUT);
-  attachInterrupt(switch_interrupt_pin-2,setSwitchTrigger,HIGH); 
+
   
   //initialize all LEDs in stripe with color red
   for(int i = 0; i < NUM_LEDS_PER_STRIP; i++) {
-    leds[x][i] = CRGB::Red;
+    leds[i] = CRGB::Red;
   }
 }
   
@@ -85,25 +91,30 @@ void loop()
     switchTrigger = 0;
     switchPressed = 1;
   }
-  if((millis()-starttime>deadtime) && switchPressed==1){
+  else if (switchTrigger && switchPressed==1){    //avoid repeated switching at long button push
+    starttime=millis();
+    switchTrigger = 0;
+    switchPressed = 1;
+  }
+  else if((millis()-starttime>SWITCH_DEADTIME) && switchPressed==1){
     switchPressed = 0;
     switchTrigger = 0;
-  } 
-  
-  
-  
+  }  
 }
 
 //-------------------------------------------------------------------------------------------------------------------
 //--- Trigger-Behandlungs-Routinen
 
 void setKnockTrigger() {
-  trigger=1;
+  knockTrigger=1;
 }
 
-void nextPatterTrigger()
+void setSwitchTrigger()
 {
-  switchTrigger=1;  
+  switchTrigger=1;
+  digitalWrite(LED_pin,HIGH);
+  delay(100);
+  digitalWrite(LED_pin,LOW);
 }
 
 //-------------------------------------------------------------------------------------------------------------------
@@ -112,16 +123,16 @@ void nextPatterTrigger()
 void RainbowColors_react() 
 {
   static unsigned long starttime;
-  if (trigger && on==0){
+  if (knockTrigger && on==0){
     starttime=millis();
     FastLED.setBrightness(int(1*BRIGHTNESS));
-    trigger = 0;
+    knockTrigger = 0;
     on = 1;
   }
   else if((millis()-starttime>REACTONBEATDURATION) && on){
     FastLED.setBrightness(int(0.3*BRIGHTNESS));
     on = 0;
-    trigger=0;
+    knockTrigger=0;
   }
   else if(!on){
     FastLED.setBrightness(int(0.3*BRIGHTNESS));
@@ -135,16 +146,16 @@ void RainbowColors_react()
 void White_react() 
 {
   static unsigned long starttime;
-  if (trigger && on==0){
+  if (knockTrigger && on==0){
     starttime=millis();
     FastLED.setBrightness(int(1*BRIGHTNESS));
-    trigger = 0;
+    knockTrigger = 0;
     on = 1;
   }
   else if((millis()-starttime>REACTONBEATDURATION) && on){
     FastLED.setBrightness(int(0*BRIGHTNESS));
     on = 0;
-    trigger=0;
+    knockTrigger=0;
   }
   else if(!on){
     FastLED.setBrightness(int(0*BRIGHTNESS));
@@ -165,16 +176,15 @@ void RainbowColors_bars()
   
   FastLED.setBrightness(int(BRIGHTNESS));
   
-  if (trigger && on==0){    
+  if (knockTrigger && on==0){    
     // streifen mit Regenbogenfarben fuellen
     fill_rainbow( leds,NUM_LEDS_PER_STRIP, gHue, DELTA_HUE);
     starttime=timenow;
-    trigger = 0;
+    knockTrigger = 0;
     on = 1;
   }
- else if((timenow-starttime<barduration)){
+  else if((timenow-starttime<barduration)){
     n = int(float(timenow-starttime)/float(barduration)*float(NUM_LEDS_PER_STRIP));
-    ParaPaletteColors_bar(currentPalette, n);
     // streifen mit Regenbogenfarben fuellen
     fill_rainbow( leds,NUM_LEDS_PER_STRIP, gHue, DELTA_HUE);
     // von einer Seite dann mit Schwarz ueberschreiben bis n
@@ -186,12 +196,13 @@ void RainbowColors_bars()
     // alle LEDs ím Streifen schwarz setzen
     for(int i=0; i<NUM_LEDS_PER_STRIP; i++){
       leds[i] = CRGB::Black;
+    }
   }
   for(int i=0; i< NUM_LEDS_PER_STRIP;i++){
       leds[i].nscale8_video( 85);                         //ganz boeser hack von sarah, tut nichts, entfernt ruckeln, anstatt BRIGHTNESS zu setzen
   }
   if((timenow-starttime>REACTONBEATDURATION) && on){
     on = 0;
-    trigger=0;
+    knockTrigger=0;
   }
 }
