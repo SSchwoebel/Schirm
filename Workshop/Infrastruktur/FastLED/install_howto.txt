@@ -1,0 +1,7 @@
+zip oder tar.gz entpacken
+Ordner "FastLED-3.2.0r" in den Arduino Lib-Ordner kopiert
+umbenennen in "FastLED"
+IDE starten
+Menü Sketch-> Bibliothek importieren
+Ordner FastLED auswählen
+ 
