@@ -132,7 +132,7 @@ void loop()
   //read echo signal duration
   pinMode(ECHO_pin,INPUT);
   echo_duration = pulseIn(ECHO_pin,HIGH);
-  
+
   if (echo_duration < 10000){
     brightness= int(200.0/echo_duration *master_brightness);
   }
@@ -147,7 +147,7 @@ void loop()
   float t = dht.readTemperature();
 
   // Check if any reads failed and exit early (to try again).
-  if (isnan(h) || isnan(t) || isnan(f)) {
+  if (isnan(h) || isnan(t)) {
     Serial.println(F("Failed to read from DHT sensor!"));
     return;
   }
