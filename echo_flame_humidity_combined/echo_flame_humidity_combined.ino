@@ -46,12 +46,6 @@ int brightness=master_brightness; //variable fuer Helligkeit
 volatile int knockTrigger=0;  //Globaler Trigger Wert, wird von Interrupt-Funktion "setKnockTrigger" genutzt um Trigger an loop weiterzugeben. Muss dazu als "volatile" definiert werden.
 volatile int switchTrigger=0;  //Globaler Trigger Wert, wird von Interrupt-Funktion "setSwitchTrigger" genutzt um Trigger an loop weiterzugeben. Muss dazu als "volatile" definiert werden.
 
-// Liste der Leuchtmuster durch die gewechselt wird. Jedes ist weiter unten als separate Funktion definiert.
-typedef void (*SimplePatternList[])();
-SimplePatternList gPatterns = {RainbowColors_react, White_react, RainbowColors_bars};
-const int number_of_patterns = 3;
-
-
 // Initialize DHT sensor.
 DHT dht(DHT_pin, DHT11);
 
@@ -81,6 +75,12 @@ void setup() {
   //serial output
   Serial.begin(9600);
 }
+
+// Liste der Leuchtmuster durch die gewechselt wird. Jedes ist weiter unten als separate Funktion definiert.
+typedef void (*SimplePatternList[])();
+SimplePatternList gPatterns = {RainbowColors_react, White_react, RainbowColors_bars};
+const int number_of_patterns = 3;
+
   
 void loop()
 {
@@ -147,7 +147,7 @@ void loop()
   float t = dht.readTemperature();
 
   // Check if any reads failed and exit early (to try again).
-  if (isnan(h) || isnan(t) || isnan(f)) {
+  if (isnan(h) || isnan(t)){ // || isnan(f)) {
     Serial.println(F("Failed to read from DHT sensor!"));
     return;
   }
