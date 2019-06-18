@@ -1,0 +1,5 @@
+Falls serial Port nicht gefunden wird:
+
+sudo update-alternatives --config java
+
+und auf java 8 stellen
