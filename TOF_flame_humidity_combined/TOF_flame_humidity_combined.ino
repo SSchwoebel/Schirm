@@ -146,7 +146,7 @@ void loop()
   Serial.println(sensor.ranging_data.range_mm);
 
   if (sensor.ranging_data.range_mm < 4000){
-    brightness= int(20/sensor.ranging_data.range_mm *master_brightness);
+    brightness= int(float(100)/sensor.ranging_data.range_mm *master_brightness);
   }
   // setze Helligkeit
   FastLED.setBrightness(brightness);

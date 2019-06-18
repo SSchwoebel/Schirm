@@ -35,10 +35,7 @@ int starttime;  // wird gesetzt sobald Schalter gedrueckt wurde und benutzt um e
 volatile int knockTrigger=0;  //Globaler Trigger Wert, wird von Interrupt-Funktion "setKnockTrigger" genutzt um Trigger an loop weiterzugeben. Muss dazu als "volatile" definiert werden.
 volatile int switchTrigger=0;  //Globaler Trigger Wert, wird von Interrupt-Funktion "setSwitchTrigger" genutzt um Trigger an loop weiterzugeben. Muss dazu als "volatile" definiert werden.
 
-// Liste der Leuchtmuster durch die gewechselt wird. Jedes ist weiter unten als separate Funktion definiert.
-typedef void (*SimplePatternList[])();
-SimplePatternList gPatterns = {RainbowColors_react, White_react, RainbowColors_bars};
-const int number_of_patterns = 3;
+
 
 
 void setup() {
@@ -61,7 +58,12 @@ void setup() {
   // setze Helligkeit
   FastLED.setBrightness(brightness);
 }
-  
+
+// Liste der Leuchtmuster durch die gewechselt wird. Jedes ist weiter unten als separate Funktion definiert.
+typedef void (*SimplePatternList[])();
+SimplePatternList gPatterns = {RainbowColors_react, White_react, RainbowColors_bars};
+const int number_of_patterns = 3;
+
 void loop()
 {
   // Rufe die aktuelle Muster-Funktion einmal auf um das 'leds' Array upzudaten
