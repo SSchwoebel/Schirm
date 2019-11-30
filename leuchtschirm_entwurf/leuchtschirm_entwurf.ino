@@ -9,8 +9,8 @@ FASTLED_USING_NAMESPACE
 // albi sagt hallo
 // auch yannic gruesst die Welt
 
-//#define AUFTRITT
-#define DATA_PINS_START    4
+#define AUFTRITT
+#define DATA_PINS_START 5
 #define NUM_STRIPS 8
 #ifdef AUFTRITT
 #define NUM_LEDS_PER_STRIP 30
@@ -38,8 +38,8 @@ uint8_t blink_rate;
 uint8_t rotation_rate;
 uint8_t BRIGHTNESS;
 
-const int knock_interrupt_pin=2; 
-const int switch_interrupt_pin=3;
+const int knock_interrupt_pin=3; 
+const int switch_interrupt_pin=4;
 //const int knockDigital=13; 
 const int brightnessPoti = A0; // brightness poti is connected to analog pin 0
 
@@ -94,7 +94,8 @@ void setup() {
 // List of patterns to cycle through.  Each is defined as a separate function below.
 typedef void (*SimplePatternList[])();
 
-SimplePatternList gPatterns = {RainbowColors_fade, RainbowStripeColors_fade, OceanColors_fade, LavaColors_fade, ForestColors_fade, //White_fade,
+SimplePatternList gPatterns = {RainbowColors_stop, RainbowStripeColors_stop, OceanColors_stop, LavaColors_stop, ForestColors_stop,
+RainbowColors_fade, RainbowStripeColors_fade, OceanColors_fade, LavaColors_fade, ForestColors_fade, //White_fade,
 RainbowColors_bars_fast, OceanColors_bars_fast, ForestColors_bars_fast,
 RainbowColors_bars_slow, OceanColors_bars_slow, ForestColors_bars_slow,
 //RainbowColors_react, White_react,
@@ -113,6 +114,7 @@ const char *PatternNames[] = { "reactonbeat", "rainbow", "rainbowWithGlitter", "
 
 uint8_t gCurrentPatternNumber = 0; // Index number of which pattern is current
 uint8_t gHue = 0; // rotating "base color" used by many of the patterns
+uint8_t delta_gHue = 1; // step for rotating the base color
 //uint8_t trigger = 0; // Globaler Trigger Wert, benutzbar um ein Triggerevent an Pattern-Funktion weiterzuleiten
 uint8_t on = 0;
 uint8_t switchPressed=0;
@@ -137,8 +139,8 @@ void loop()
   //EVERY_N_MILLISECONDS( 1 ){ trigger=digitalRead(knockDigital); }// Serial.println("Knock!"); Serial.println(sensorReading);}}
 
   // do some periodic updates
-  EVERY_N_MILLISECONDS( 20 ) { gHue++; } // slowly cycle the "base color" through the rainbow
-  EVERY_N_SECONDS( 30 ) { nextPattern_random(); } // change patterns periodically
+  EVERY_N_MILLISECONDS( 20 ) { gHue = gHue + delta_gHue; } // slowly cycle the "base color" through the rainbow
+  EVERY_N_SECONDS( 120 ) { nextPattern_random(); } // change patterns periodically
   nextPatternSwitch();
   
   
@@ -810,4 +812,63 @@ void ForestColors_bars_slow()
 {
   int barduration = 500;
   PaletteColors_bars(ForestColors_p, barduration);
+}
+
+
+void PaletteColors_stop(CRGBPalette16 currentPalette)                         //for convenience, is called by the specialized PatternFunctions
+{
+  
+  static unsigned long starttime;
+  int fadeduration=150;
+  int timenow=millis();
+
+  if (trigger && on==0){
+    starttime=timenow;
+    delta_gHue = -1;
+    trigger = 0;
+    on = 1;
+  }
+  
+  if((timenow-starttime<fadeduration)){
+    delta_gHue = -1;
+
+  }
+  if((timenow-starttime>REACTONBEATDURATION) && on){
+    on = 0;
+    trigger=0;
+  }
+  if(!on){
+    FastLED.setBrightness(int(0.3*BRIGHTNESS));
+    delta_gHue = 1;
+  }
+  ParaPaletteColors(currentPalette);                              //Arme mit Palettenfarben fuellen
+  for(int i=0; i< NUM_STRIPS*NUM_LEDS_PER_STRIP;i++){
+      leds_flat[i].nscale8_video( 255);                         //ganz boeser hack von sarah, tut nichts, entfernt ruckeln
+  } 
+}
+
+void RainbowColors_stop() 
+{
+  PaletteColors_stop(RainbowColors_p) ;
+}
+
+
+void LavaColors_stop() 
+{ 
+  PaletteColors_stop(LavaColors_p) ;
+}
+
+void OceanColors_stop() 
+{ 
+  PaletteColors_stop(OceanColors_p) ;
+}
+
+void ForestColors_stop() 
+{ 
+  PaletteColors_stop(ForestColors_p) ;
+}
+
+void RainbowStripeColors_stop() 
+{ 
+  PaletteColors_stop(RainbowStripeColors_p) ;
 }
