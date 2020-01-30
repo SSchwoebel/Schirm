@@ -661,10 +661,43 @@ void White_react()
   }
 }
 
+void Red_react() 
+{
+  static unsigned long starttime;
+  if (trigger && on==0){
+    starttime=millis();
+    FastLED.setBrightness(int(1*BRIGHTNESS));
+    trigger = 0;
+    on = 1;
+  }
+  else if((millis()-starttime>REACTONBEATDURATION) && on){
+    FastLED.setBrightness(int(0*BRIGHTNESS));
+    on = 0;
+    trigger=0;
+  }
+  else if(!on){
+    FastLED.setBrightness(int(0*BRIGHTNESS));
+  }
+    
+  
+  // FastLED's built-in rainbow generator
+  fill_red();
+  for(int i=1;i<NUM_STRIPS;i++){                                 //Parallel fuer jeden Arm gleich
+    memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP *sizeof(CRGB) );
+  }
+}
+
 void fill_white()
 {
     for(int i = 0; i < NUM_LEDS_PER_STRIP; i++) {
       leds[0][i] = CRGB::White;
+    }
+}
+
+void fill_red()
+{
+    for(int i = 0; i < NUM_LEDS_PER_STRIP; i++) {
+      leds[0][i] = CRGB::Red;
     }
 }
 
