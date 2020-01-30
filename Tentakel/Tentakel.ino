@@ -597,17 +597,17 @@ void RainbowColors_react()
   static unsigned long starttime;
   if (trigger && on==0){
     starttime=millis();
-    FastLED.setBrightness(int(1*BRIGHTNESS));
+    FastLED.setBrightness(min(255, 3*int(BRIGHTNESS)));
     trigger = 0;
     on = 1;
   }
   else if((millis()-starttime>REACTONBEATDURATION) && on){
-    FastLED.setBrightness(int(0.3*BRIGHTNESS));
+    FastLED.setBrightness(int(BRIGHTNESS));
     on = 0;
     trigger=0;
   }
   else if(!on){
-    FastLED.setBrightness(int(0.3*BRIGHTNESS));
+    FastLED.setBrightness(int(BRIGHTNESS));
   }
   
   
@@ -725,13 +725,13 @@ void PaletteColors_fade(CRGBPalette16 currentPalette)                         //
 
   if (trigger && on==0){
     starttime=timenow;
-    FastLED.setBrightness(int(1*BRIGHTNESS));
+    FastLED.setBrightness(min(255,3*int(BRIGHTNESS)));
     trigger = 0;
     on = 1;
   }
   
   if((timenow-starttime<fadeduration)){
-    FastLED.setBrightness(int((0.7*((fadeduration-timenow+starttime)/float(fadeduration))+0.3)*BRIGHTNESS));
+    FastLED.setBrightness(min(255, int((2*((fadeduration-timenow+starttime)/float(fadeduration))+1)*BRIGHTNESS)));
 
   }
   if((timenow-starttime>REACTONBEATDURATION) && on){
@@ -739,7 +739,7 @@ void PaletteColors_fade(CRGBPalette16 currentPalette)                         //
     trigger=0;
   }
   if(!on){
-    FastLED.setBrightness(int(0.3*BRIGHTNESS));
+    FastLED.setBrightness(int(BRIGHTNESS));
   }
   ParaPaletteColors(currentPalette);                              //Arme mit Palettenfarben fuellen
   for(int i=0; i< NUM_STRIPS*NUM_LEDS_PER_STRIP;i++){
