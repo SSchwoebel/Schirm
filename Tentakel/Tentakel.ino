@@ -232,6 +232,23 @@ void readSensors()
   Serial.println(sensor3.ranging_data.range_mm);
 }
 
+bool detectedApproach()
+{
+  static int sensor0mean = sensor0.read();
+  //sensor1.read();
+  //sensor2.read();
+  //sensor3.read();
+
+  sensor0reading = sensor0.read()
+  sensor0mean = (sensor0mean*99 + sensor0reading)/100;
+
+  if (sensor0reading < 0.5*sensor0mean){
+    return true;
+  } else {
+    return false;
+  } 
+}
+
 void nextPattern()
 {
   // add one to the current pattern number, and wrap around at the end
