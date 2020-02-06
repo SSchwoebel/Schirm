@@ -192,12 +192,18 @@ volatile uint8_t trigger=0;  //Globaler Trigger Wert, wird von Interrupt-Funktio
 volatile uint8_t brightnessTrigger=0;  //Globaler Trigger Wert, wird von Interrupt-Funktion "setTrigger" genutzt um Trigger an loop weiterzugeben. Muss dazu als "volatile" definiert werden.
   
 void loop()
-{
-  //hierhin mit den Sensorabfragen, die dann von den Patternfunktionen verwertet werden sollen
-  //EVERY_N_MILLISECONDS ( 1000 ){trigger= 1; }  // Simuliere 120bpm input vom "beatsensor"  EVERY_N_MILLISECONDS
+{ 
+  static bool approach_detected=false;  //holds information if approach was detected
+  
+  //detect approach
+  EVERY_N_MILLISECONDS( 100 ) {approach_detected=detectApproach();}
     
   // Call the current pattern function once, updating the 'leds' array
-  gPatterns[gCurrentPatternNumber]();
+  if (approach_detected){
+    Red_react();
+  } else {
+    gPatterns[gCurrentPatternNumber]();
+  }
 
   // send the 'leds' array out to the actual LED strip
   // but only every 1000/FRAMES_PER_SECOND to keep the framerate modest and time for output modest
@@ -214,7 +220,7 @@ void loop()
     if (digitalRead(switch_pin)==LOW)
       nextPattern();
   } 
-  EVERY_N_MILLISECONDS( 100 ) {readSensors();}
+
   nextBrightnessSwitch();
   
   
@@ -223,16 +229,33 @@ void loop()
 
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
 
-void readSensors()
+bool detectApproach()
 {
-  sensor0.read();
-  sensor1.read();
-  sensor2.read();
-  sensor3.read();
-  Serial.print(sensor0.ranging_data.range_mm);
-  Serial.print(sensor1.ranging_data.range_mm);
-  Serial.print(sensor2.ranging_data.range_mm);
-  Serial.println(sensor3.ranging_data.range_mm);
+  const int mean_weight=20;
+  const float relative_threshold=0.5;
+  int sensor0reading;
+  int sensor1reading;
+  int sensor2reading;
+  int sensor3reading;
+  static int sensor0mean = sensor0.read();
+  static int sensor1mean = sensor1.read();
+  static int sensor2mean = sensor2.read();
+  static int sensor3mean = sensor3.read();
+
+  sensor0reading = sensor0.read();
+  sensor1reading = sensor1.read();
+  sensor2reading = sensor2.read();
+  sensor3reading = sensor3.read();
+  sensor0mean = (sensor0mean*mean_weight + sensor0reading)/(mean_weight+1);
+  sensor1mean = (sensor1mean*mean_weight + sensor1reading)/(mean_weight+1);
+  sensor2mean = (sensor2mean*mean_weight + sensor2reading)/(mean_weight+1);
+  sensor3mean = (sensor3mean*mean_weight + sensor3reading)/(mean_weight+1);
+
+  if (sensor0reading < relative_threshold*sensor0mean || sensor1reading < relative_threshold*sensor1mean || sensor2reading < relative_threshold*sensor2mean || sensor3reading < relative_threshold*sensor3mean ){
+    return true;
+  } else {
+    return false;
+  } 
 }
 
 void nextPattern()
