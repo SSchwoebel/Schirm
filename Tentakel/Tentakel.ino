@@ -12,8 +12,8 @@ FASTLED_USING_NAMESPACE
 #define DATA_PINS_START    9
 #define NUM_STRIPS 4
 #define NUM_LEDS_PER_STRIP 64
-#define BARS_INSIDE 1
-#define DELTA_HUE -3
+#define BARS_INSIDE 0
+#define DELTA_HUE 2
 #define GLITTER_N 30
 #define BRIGHTNESS_START 100
 #define BRIGHTNESS_INC 16
@@ -174,7 +174,7 @@ typedef void (*SimplePatternList[])();
 SimplePatternList gPatterns = {RainbowColors_fade, RainbowStripeColors_fade, OceanColors_fade, LavaColors_fade, ForestColors_fade, //White_fade,
 RainbowColors_bars_fast, OceanColors_bars_fast, ForestColors_bars_fast,
 RainbowColors_bars_slow, OceanColors_bars_slow, ForestColors_bars_slow,
-//RainbowColors_react, White_react,
+RainbowColors_react, White_react,
 RainbowColors_withGlitter_react, RainbowStripeColors_withGlitter_react, OceanColors_withGlitter_react, LavaColors_withGlitter_react, ForestColors_withGlitter_react,
 rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm, goaround, rainbow2, rainbowWithGlitter2, confetti2, sinelon2, juggle2, bpm2 };
 
@@ -193,7 +193,7 @@ void loop()
   static bool approach_detected=false;  //holds information if approach was detected
   
   //detect approach
-  EVERY_N_MILLISECONDS( 100 ) {approach_detected=detectApproach();}
+  EVERY_N_MILLISECONDS( 10 ) {approach_detected=detectApproach();}
     
   // Call the current pattern function once, updating the 'leds' array
   if (approach_detected){
@@ -212,7 +212,7 @@ void loop()
 
   // do some periodic updates
   EVERY_N_MILLISECONDS( 20 ) { gHue++; } // slowly cycle the "base color" through the rainbow
-  EVERY_N_SECONDS( 30000 ) { nextPattern_random(); } // change patterns periodically
+  EVERY_N_SECONDS( 3000 ) { nextPattern_random(); } // change patterns periodically
   EVERY_N_MILLISECONDS( 1000 ){         //check for patter switch pressed and react accordingly
     if (digitalRead(switch_pin)==LOW)
       nextPattern();
@@ -228,8 +228,8 @@ void loop()
 
 bool detectApproach()
 {
-  const int mean_weight=20;
-  const float relative_threshold=0.5;
+  const int mean_weight=50;
+  const float relative_threshold=0.6;
   int sensor0reading;
   int sensor1reading;
   int sensor2reading;
