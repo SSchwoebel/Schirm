@@ -112,22 +112,23 @@ void setup() {
   // the minimum timing budget is 20 ms for short distance mode and 33 ms for
   // medium and long distance modes. See the VL53L1X datasheet for more
   // information on range and timing limits.
+  // Yannic: A timining budget of 140000 allows for the maximum distance of 4m.
   sensor0.setDistanceMode(VL53L1X::Long);
-  sensor0.setMeasurementTimingBudget(50000);
+  sensor0.setMeasurementTimingBudget(200000);
   sensor1.setDistanceMode(VL53L1X::Long);
-  sensor1.setMeasurementTimingBudget(50000);
+  sensor1.setMeasurementTimingBudget(200000);
   sensor2.setDistanceMode(VL53L1X::Long);
-  sensor2.setMeasurementTimingBudget(50000);
+  sensor2.setMeasurementTimingBudget(200000);
   sensor3.setDistanceMode(VL53L1X::Long);
-  sensor3.setMeasurementTimingBudget(50000);
+  sensor3.setMeasurementTimingBudget(200000);
   
   // Start continuous readings at a rate of one measurement every 50 ms (the
   // inter-measurement period). This period should be at least as long as the
   // timing budget.
-  sensor0.startContinuous(50);
-  sensor1.startContinuous(50);
-  sensor2.startContinuous(50);
-  sensor3.startContinuous(50);
+  sensor0.startContinuous(200);
+  sensor1.startContinuous(200);
+  sensor2.startContinuous(200);
+  sensor3.startContinuous(200);
   
 
   // tell FastLED about the LED strip configuration
@@ -237,10 +238,10 @@ bool detectApproach()
   int sensor1reading;
   int sensor2reading;
   int sensor3reading;
-  static int sensor0mean = sensor0.read();
-  static int sensor1mean = sensor1.read();
-  static int sensor2mean = sensor2.read();
-  static int sensor3mean = sensor3.read();
+  static long sensor0mean = sensor0.read();
+  static long sensor1mean = sensor1.read();
+  static long sensor2mean = sensor2.read();
+  static long sensor3mean = sensor3.read();
 
   sensor0reading = sensor0.read();
   sensor1reading = sensor1.read();
