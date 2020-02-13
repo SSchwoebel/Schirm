@@ -216,7 +216,7 @@ void loop()
 
   // do some periodic updates
   EVERY_N_MILLISECONDS( 20 ) { gHue = gHue + delta_gHue; } // slowly cycle the "base color" through the rainbow
-  EVERY_N_SECONDS( 30000 ) { nextPattern_random(); } // change patterns periodically
+  EVERY_N_SECONDS( 30 ) { nextPattern_random(); } // change patterns periodically
   EVERY_N_MILLISECONDS( 1000 ){         //check for patter switch pressed and react accordingly
     if (digitalRead(switch_pin)==LOW)
       nextPattern();
