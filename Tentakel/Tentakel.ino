@@ -14,7 +14,7 @@ FASTLED_USING_NAMESPACE
 #define NUM_LEDS_PER_STRIP 64
 #define BARS_INSIDE 0
 #define DELTA_HUE 2
-#define DELTA_gHUE_BASE 2
+#define DELTA_gHUE_BASE 4
 #define GLITTER_N 30
 #define BRIGHTNESS_START 100
 #define BRIGHTNESS_INC 16
@@ -114,21 +114,21 @@ void setup() {
   // information on range and timing limits.
   // Yannic: A timining budget of 140000 allows for the maximum distance of 4m.
   sensor0.setDistanceMode(VL53L1X::Long);
-  sensor0.setMeasurementTimingBudget(200000);
+  sensor0.setMeasurementTimingBudget(50000);
   sensor1.setDistanceMode(VL53L1X::Long);
-  sensor1.setMeasurementTimingBudget(200000);
+  sensor1.setMeasurementTimingBudget(50000);
   sensor2.setDistanceMode(VL53L1X::Long);
-  sensor2.setMeasurementTimingBudget(200000);
+  sensor2.setMeasurementTimingBudget(50000);
   sensor3.setDistanceMode(VL53L1X::Long);
-  sensor3.setMeasurementTimingBudget(200000);
+  sensor3.setMeasurementTimingBudget(50000);
   
   // Start continuous readings at a rate of one measurement every 50 ms (the
   // inter-measurement period). This period should be at least as long as the
   // timing budget.
-  sensor0.startContinuous(200);
-  sensor1.startContinuous(200);
-  sensor2.startContinuous(200);
-  sensor3.startContinuous(200);
+  sensor0.startContinuous(50);
+  sensor1.startContinuous(50);
+  sensor2.startContinuous(50);
+  sensor3.startContinuous(50);
   
 
   // tell FastLED about the LED strip configuration
@@ -233,15 +233,16 @@ void loop()
 bool detectApproach()
 {
   const int mean_weight=50;
-  const float relative_threshold=0.6;
+  const float relative_threshold=0.8;
   int sensor0reading;
   int sensor1reading;
   int sensor2reading;
   int sensor3reading;
+  
   static long sensor0mean = sensor0.read();
   static long sensor1mean = sensor1.read();
   static long sensor2mean = sensor2.read();
-  static long sensor3mean = sensor3.read();
+  static long sensor3mean = sensor3.read();  
 
   sensor0reading = sensor0.read();
   sensor1reading = sensor1.read();
