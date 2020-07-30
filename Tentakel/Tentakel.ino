@@ -14,7 +14,7 @@ FASTLED_USING_NAMESPACE
 #define NUM_LEDS_PER_STRIP 64
 #define BARS_INSIDE 0
 #define DELTA_HUE 2
-#define DELTA_gHUE_BASE 4
+#define DELTA_gHUE_BASE 2
 #define GLITTER_N 30
 #define BRIGHTNESS_START 100
 #define BRIGHTNESS_INC 16
@@ -114,21 +114,21 @@ void setup() {
   // information on range and timing limits.
   // Yannic: A timining budget of 140000 allows for the maximum distance of 4m.
   sensor0.setDistanceMode(VL53L1X::Long);
-  sensor0.setMeasurementTimingBudget(50000);
+  sensor0.setMeasurementTimingBudget(200000);
   sensor1.setDistanceMode(VL53L1X::Long);
-  sensor1.setMeasurementTimingBudget(50000);
+  sensor1.setMeasurementTimingBudget(200000);
   sensor2.setDistanceMode(VL53L1X::Long);
-  sensor2.setMeasurementTimingBudget(50000);
+  sensor2.setMeasurementTimingBudget(200000);
   sensor3.setDistanceMode(VL53L1X::Long);
-  sensor3.setMeasurementTimingBudget(50000);
+  sensor3.setMeasurementTimingBudget(200000);
   
   // Start continuous readings at a rate of one measurement every 50 ms (the
   // inter-measurement period). This period should be at least as long as the
   // timing budget.
-  sensor0.startContinuous(50);
-  sensor1.startContinuous(50);
-  sensor2.startContinuous(50);
-  sensor3.startContinuous(50);
+  sensor0.startContinuous(200);
+  sensor1.startContinuous(200);
+  sensor2.startContinuous(200);
+  sensor3.startContinuous(200);
   
 
   // tell FastLED about the LED strip configuration
@@ -173,12 +173,12 @@ void setup() {
 // List of patterns to cycle through.  Each is defined as a separate function below.
 typedef void (*SimplePatternList[])();
 
-SimplePatternList gPatterns = {RainbowColors_stop, RainbowStripeColors_stop, OceanColors_stop, LavaColors_stop, ForestColors_stop,
-RainbowColors_fade, RainbowStripeColors_fade, OceanColors_fade, LavaColors_fade, ForestColors_fade, //White_fade,
-RainbowColors_bars_fast, OceanColors_bars_fast, ForestColors_bars_fast,
-RainbowColors_bars_slow, OceanColors_bars_slow, ForestColors_bars_slow,
+SimplePatternList gPatterns = {RainbowColors_stop, RainbowStripeColors_stop, OceanColors_stop, LavaColors_stop, ForestColors_stop, CloudColors_stop, PartyColors_stop,
+RainbowColors_fade, RainbowStripeColors_fade, OceanColors_fade, LavaColors_fade, ForestColors_fade, CloudColors_fade, PartyColors_fade, //White_fade,
+RainbowColors_bars_fast, OceanColors_bars_fast, ForestColors_bars_fast, CloudColors_bars_fast, PartyColors_bars_fast,
+RainbowColors_bars_slow, OceanColors_bars_slow, ForestColors_bars_slow, CloudColors_bars_slow, PartyColors_bars_slow,
 RainbowColors_react, White_react,
-RainbowColors_withGlitter_react, RainbowStripeColors_withGlitter_react, OceanColors_withGlitter_react, LavaColors_withGlitter_react, ForestColors_withGlitter_react,
+RainbowColors_withGlitter_react, RainbowStripeColors_withGlitter_react, OceanColors_withGlitter_react, LavaColors_withGlitter_react, ForestColors_withGlitter_react, CloudColors_withGlitter_react, PartyColors_withGlitter_react,
 rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm, goaround, rainbow2, rainbowWithGlitter2, confetti2, sinelon2, juggle2, bpm2 };
 
 
@@ -233,16 +233,15 @@ void loop()
 bool detectApproach()
 {
   const int mean_weight=50;
-  const float relative_threshold=0.8;
+  const float relative_threshold=0.6;
   int sensor0reading;
   int sensor1reading;
   int sensor2reading;
   int sensor3reading;
-  
   static long sensor0mean = sensor0.read();
   static long sensor1mean = sensor1.read();
   static long sensor2mean = sensor2.read();
-  static long sensor3mean = sensor3.read();  
+  static long sensor3mean = sensor3.read();
 
   sensor0reading = sensor0.read();
   sensor1reading = sensor1.read();
@@ -768,6 +767,16 @@ void RainbowStripeColors_withGlitter_react()
   PaletteColors_withGlitter_react(RainbowStripeColors_p) ;
 }
 
+void CloudColors_withGlitter_react() 
+{ 
+  PaletteColors_withGlitter_react(CloudColors_p) ;
+}
+
+void PartyColors_withGlitter_react() 
+{ 
+  PaletteColors_withGlitter_react(PartyColors_p) ;
+}
+
 void rainbowWithGlitter_react() 
 {
   PaletteColors_withGlitter_react(RainbowColors_p) ;
@@ -832,6 +841,16 @@ void ForestColors_fade()
 void RainbowStripeColors_fade() 
 { 
   PaletteColors_fade(RainbowStripeColors_p) ;
+}
+
+void CloudColors_fade() 
+{ 
+  PaletteColors_withGlitter_react(CloudColors_p) ;
+}
+
+void PartyColors_fade() 
+{ 
+  PaletteColors_withGlitter_react(PartyColors_p) ;
 }
 
 void White_fade()                         
@@ -925,6 +944,16 @@ void ForestColors_bars_fast()
   PaletteColors_bars(ForestColors_p, barduration);
 }
 
+void CloudColors_bars_fast() 
+{ 
+  PaletteColors_withGlitter_react(CloudColors_p) ;
+}
+
+void PartyColors_bars_fast() 
+{ 
+  PaletteColors_withGlitter_react(PartyColors_p) ;
+}
+
 // functions with color palette: slow
 
 void RainbowColors_bars_slow() 
@@ -949,6 +978,16 @@ void ForestColors_bars_slow()
 {
   int barduration = 500;
   PaletteColors_bars(ForestColors_p, barduration);
+}
+
+void CloudColors_bars_slow() 
+{ 
+  PaletteColors_withGlitter_react(CloudColors_p) ;
+}
+
+void PartyColors_bars_slow() 
+{ 
+  PaletteColors_withGlitter_react(PartyColors_p) ;
 }
 
 //-------------------------------------------------------------------
@@ -1011,4 +1050,14 @@ void ForestColors_stop()
 void RainbowStripeColors_stop() 
 { 
   PaletteColors_stop(RainbowStripeColors_p) ;
+}
+
+void CloudColors_stop() 
+{ 
+  PaletteColors_withGlitter_react(CloudColors_p) ;
+}
+
+void PartyColors_stop() 
+{ 
+  PaletteColors_withGlitter_react(PartyColors_p) ;
 }
