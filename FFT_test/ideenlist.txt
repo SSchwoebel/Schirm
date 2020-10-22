@@ -1,0 +1,2 @@
+- einzelne Bins über Zeit mitteln um Rauschen zu unterdrücken
+- mit Kernel (Gauß?) über Streifen falten um Rauschen zu unterdrücken
