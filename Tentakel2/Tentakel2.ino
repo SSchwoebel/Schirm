@@ -14,7 +14,7 @@ FASTLED_USING_NAMESPACE
 #define NUM_LEDS_PER_STRIP 64
 #define BARS_INSIDE 0
 #define DELTA_HUE 2
-#define DELTA_gHUE_BASE 10
+#define DELTA_gHUE_BASE 1
 #define GLITTER_N 30
 #define BRIGHTNESS_START 100
 #define BRIGHTNESS_INC 16
@@ -37,99 +37,10 @@ const int knock_interrupt_pin=3;
 const int switch_pin=4;
 const int brightness_switch_interrupt_pin=2; 
 
-//TOF sensors
-VL53L1X sensor0;
-VL53L1X sensor1;
-VL53L1X sensor2;
-VL53L1X sensor3;
-
-//TOF sensors XSHUT PINS
-int TOF_XSHUT0=5;
-int TOF_XSHUT1=6;
-int TOF_XSHUT2=7;
-int TOF_XSHUT3=8;
-
-//TOF sensors addresses
-uint8_t TOF_address0=22;
-uint8_t TOF_address1=25;
-uint8_t TOF_address2=28;
-uint8_t TOF_address3=31;
 
 void setup() {
   delay(3000); // 3 second delay for recovery
-  Serial.begin(9600);    //richte serielle Schnittstelle ein fuer das Debugging
-  
-  //set up TOF sensors
-  pinMode(TOF_XSHUT0,OUTPUT);
-  pinMode(TOF_XSHUT1,OUTPUT);
-  pinMode(TOF_XSHUT2,OUTPUT);
-  pinMode(TOF_XSHUT3,OUTPUT);
-  digitalWrite(TOF_XSHUT0,LOW);
-  digitalWrite(TOF_XSHUT1,LOW);
-  digitalWrite(TOF_XSHUT2,LOW);
-  digitalWrite(TOF_XSHUT3,LOW);
-
-  delay(500);
-
-  Wire.begin();
-  Wire.setClock(400000); // use 400 kHz I2
-
-  //wake up sensor and set its address
-  pinMode(TOF_XSHUT0,INPUT);
-  delay(150);
-  sensor0.init(true);
-  delay(150);
-  sensor0.setAddress(TOF_address0);
-
-  //wake up sensor and set its address
-  pinMode(TOF_XSHUT1,INPUT);
-  delay(150);
-  sensor1.init(true);
-  delay(150);
-  sensor1.setAddress(TOF_address1);
-
-  //wake up sensor and set its address
-  pinMode(TOF_XSHUT2,INPUT);
-  delay(150);
-  sensor2.init(true);
-  delay(150);
-  sensor2.setAddress(TOF_address2);
-
-  //wake up sensor and set its address
-  pinMode(TOF_XSHUT3,INPUT);
-  delay(150);
-  sensor3.init(true);
-  delay(150);
-  sensor3.setAddress(TOF_address3);
-
-  sensor0.setTimeout(500);
-  sensor1.setTimeout(500);
-  sensor2.setTimeout(500);
-  sensor3.setTimeout(500);
-
-  // Use long distance mode and allow up to 50000 us (50 ms) for a measurement.
-  // You can change these settings to adjust the performance of the sensor, but
-  // the minimum timing budget is 20 ms for short distance mode and 33 ms for
-  // medium and long distance modes. See the VL53L1X datasheet for more
-  // information on range and timing limits.
-  // Yannic: A timining budget of 140000 allows for the maximum distance of 4m.
-  sensor0.setDistanceMode(VL53L1X::Long);
-  sensor0.setMeasurementTimingBudget(200000);
-  sensor1.setDistanceMode(VL53L1X::Long);
-  sensor1.setMeasurementTimingBudget(200000);
-  sensor2.setDistanceMode(VL53L1X::Long);
-  sensor2.setMeasurementTimingBudget(200000);
-  sensor3.setDistanceMode(VL53L1X::Long);
-  sensor3.setMeasurementTimingBudget(200000);
-  
-  // Start continuous readings at a rate of one measurement every 50 ms (the
-  // inter-measurement period). This period should be at least as long as the
-  // timing budget.
-  sensor0.startContinuous(200);
-  sensor1.startContinuous(200);
-  sensor2.startContinuous(200);
-  sensor3.startContinuous(200);
-  
+  //Serial.begin(9600);    //richte serielle Schnittstelle ein fuer das Debugging
 
   // tell FastLED about the LED strip configuration
   // pin seems to have to be calculated at compile time.....
@@ -173,8 +84,7 @@ void setup() {
 // List of patterns to cycle through.  Each is defined as a separate function below.
 typedef void (*SimplePatternList[])();
 
-SimplePatternList gPatterns = {RainbowColors_stop, RainbowStripeColors_stop, OceanColors_stop, LavaColors_stop, ForestColors_stop, CloudColors_stop, PartyColors_stop,
-RainbowColors_fade, RainbowStripeColors_fade, OceanColors_fade, LavaColors_fade, ForestColors_fade, CloudColors_fade, PartyColors_fade, //White_fade,
+SimplePatternList gPatterns = {RainbowColors_fade, RainbowStripeColors_fade, OceanColors_fade, LavaColors_fade, ForestColors_fade, CloudColors_fade, PartyColors_fade, //White_fade,
 RainbowColors_bars_fast, OceanColors_bars_fast, ForestColors_bars_fast, CloudColors_bars_fast, PartyColors_bars_fast,
 RainbowColors_bars_slow, OceanColors_bars_slow, ForestColors_bars_slow, CloudColors_bars_slow, PartyColors_bars_slow,
 RainbowColors_react, White_react,
@@ -194,17 +104,10 @@ volatile uint8_t brightnessTrigger=0;  //Globaler Trigger Wert, wird von Interru
   
 void loop()
 { 
-  static bool approach_detected=false;  //holds information if approach was detected
   
-  //detect approach
-  EVERY_N_MILLISECONDS( 10 ) {approach_detected=detectApproach();}
     
-  // Call the current pattern function once, updating the 'leds' array
-  if (approach_detected){
-    Red_react();
-  } else {
-    gPatterns[gCurrentPatternNumber]();
-  }
+  gPatterns[gCurrentPatternNumber]();
+  
 
   // send the 'leds' array out to the actual LED strip
   // but only every 1000/FRAMES_PER_SECOND to keep the framerate modest and time for output modest
@@ -229,35 +132,6 @@ void loop()
 }
 
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
-
-bool detectApproach()
-{
-  const int mean_weight=50;
-  const float relative_threshold=0.6;
-  int sensor0reading;
-  int sensor1reading;
-  int sensor2reading;
-  int sensor3reading;
-  static long sensor0mean = sensor0.read();
-  static long sensor1mean = sensor1.read();
-  static long sensor2mean = sensor2.read();
-  static long sensor3mean = sensor3.read();
-
-  sensor0reading = sensor0.read();
-  sensor1reading = sensor1.read();
-  sensor2reading = sensor2.read();
-  sensor3reading = sensor3.read();
-  sensor0mean = (sensor0mean*mean_weight + sensor0reading)/(mean_weight+1);
-  sensor1mean = (sensor1mean*mean_weight + sensor1reading)/(mean_weight+1);
-  sensor2mean = (sensor2mean*mean_weight + sensor2reading)/(mean_weight+1);
-  sensor3mean = (sensor3mean*mean_weight + sensor3reading)/(mean_weight+1);
-
-  if (sensor0reading < relative_threshold*sensor0mean || sensor1reading < relative_threshold*sensor1mean || sensor2reading < relative_threshold*sensor2mean || sensor3reading < relative_threshold*sensor3mean ){
-    return true;
-  } else {
-    return false;
-  } 
-}
 
 void nextPattern()
 {

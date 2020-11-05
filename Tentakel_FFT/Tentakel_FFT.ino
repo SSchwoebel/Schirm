@@ -1,8 +1,8 @@
 #include "FastLED.h"
 #include <avr/interrupt.h>
 #include "pins_arduino.h"
-#include <Wire.h>       //for TOF sensors
-#include <VL53L1X.h>    //for TOF sensors
+#include "arduinoFFT.h"
+#include "math.h"
 
 FASTLED_USING_NAMESPACE
 
@@ -14,7 +14,7 @@ FASTLED_USING_NAMESPACE
 #define NUM_LEDS_PER_STRIP 64
 #define BARS_INSIDE 0
 #define DELTA_HUE 2
-#define DELTA_gHUE_BASE 10
+#define DELTA_gHUE_BASE 1
 #define GLITTER_N 30
 #define BRIGHTNESS_START 100
 #define BRIGHTNESS_INC 16
@@ -29,6 +29,7 @@ CRGB *leds_flat;                   //Pointer zur Aufnahme der Anfangsadresse des
 #define REACTONBEATDURATION 50   //wie lange leuchten nach beat in ms
 #define ROTATION_RATE_DEFAULT 60   //Rotationen pro Minute, z.B. bei goaround()
 
+
 uint8_t blink_rate;
 uint8_t rotation_rate;
 uint8_t BRIGHTNESS;
@@ -37,99 +38,19 @@ const int knock_interrupt_pin=3;
 const int switch_pin=4;
 const int brightness_switch_interrupt_pin=2; 
 
-//TOF sensors
-VL53L1X sensor0;
-VL53L1X sensor1;
-VL53L1X sensor2;
-VL53L1X sensor3;
+const int SAMPLES=64;            //Anzahl der Samples fuer FFT. Must be a power of 2 
+const int SAMPLING_FREQUENCY=10000;//Sampling Frequenz fuer FFT. Hz, must be less than 10000 due to ADC
 
-//TOF sensors XSHUT PINS
-int TOF_XSHUT0=5;
-int TOF_XSHUT1=6;
-int TOF_XSHUT2=7;
-int TOF_XSHUT3=8;
+unsigned int sampling_period_us;
+unsigned long microseconds;
 
-//TOF sensors addresses
-uint8_t TOF_address0=22;
-uint8_t TOF_address1=25;
-uint8_t TOF_address2=28;
-uint8_t TOF_address3=31;
+// Initialize Arduino FFT
+arduinoFFT FFT = arduinoFFT();
+
 
 void setup() {
   delay(3000); // 3 second delay for recovery
-  Serial.begin(9600);    //richte serielle Schnittstelle ein fuer das Debugging
-  
-  //set up TOF sensors
-  pinMode(TOF_XSHUT0,OUTPUT);
-  pinMode(TOF_XSHUT1,OUTPUT);
-  pinMode(TOF_XSHUT2,OUTPUT);
-  pinMode(TOF_XSHUT3,OUTPUT);
-  digitalWrite(TOF_XSHUT0,LOW);
-  digitalWrite(TOF_XSHUT1,LOW);
-  digitalWrite(TOF_XSHUT2,LOW);
-  digitalWrite(TOF_XSHUT3,LOW);
-
-  delay(500);
-
-  Wire.begin();
-  Wire.setClock(400000); // use 400 kHz I2
-
-  //wake up sensor and set its address
-  pinMode(TOF_XSHUT0,INPUT);
-  delay(150);
-  sensor0.init(true);
-  delay(150);
-  sensor0.setAddress(TOF_address0);
-
-  //wake up sensor and set its address
-  pinMode(TOF_XSHUT1,INPUT);
-  delay(150);
-  sensor1.init(true);
-  delay(150);
-  sensor1.setAddress(TOF_address1);
-
-  //wake up sensor and set its address
-  pinMode(TOF_XSHUT2,INPUT);
-  delay(150);
-  sensor2.init(true);
-  delay(150);
-  sensor2.setAddress(TOF_address2);
-
-  //wake up sensor and set its address
-  pinMode(TOF_XSHUT3,INPUT);
-  delay(150);
-  sensor3.init(true);
-  delay(150);
-  sensor3.setAddress(TOF_address3);
-
-  sensor0.setTimeout(500);
-  sensor1.setTimeout(500);
-  sensor2.setTimeout(500);
-  sensor3.setTimeout(500);
-
-  // Use long distance mode and allow up to 50000 us (50 ms) for a measurement.
-  // You can change these settings to adjust the performance of the sensor, but
-  // the minimum timing budget is 20 ms for short distance mode and 33 ms for
-  // medium and long distance modes. See the VL53L1X datasheet for more
-  // information on range and timing limits.
-  // Yannic: A timining budget of 140000 allows for the maximum distance of 4m.
-  sensor0.setDistanceMode(VL53L1X::Long);
-  sensor0.setMeasurementTimingBudget(200000);
-  sensor1.setDistanceMode(VL53L1X::Long);
-  sensor1.setMeasurementTimingBudget(200000);
-  sensor2.setDistanceMode(VL53L1X::Long);
-  sensor2.setMeasurementTimingBudget(200000);
-  sensor3.setDistanceMode(VL53L1X::Long);
-  sensor3.setMeasurementTimingBudget(200000);
-  
-  // Start continuous readings at a rate of one measurement every 50 ms (the
-  // inter-measurement period). This period should be at least as long as the
-  // timing budget.
-  sensor0.startContinuous(200);
-  sensor1.startContinuous(200);
-  sensor2.startContinuous(200);
-  sensor3.startContinuous(200);
-  
+  //Serial.begin(9600);    //richte serielle Schnittstelle ein fuer das Debugging
 
   // tell FastLED about the LED strip configuration
   // pin seems to have to be calculated at compile time.....
@@ -164,6 +85,9 @@ void setup() {
         leds[x][i] = CRGB::Red;
       }
      }
+
+  //calculate sampling period for FFT from Sampling Frequency
+  sampling_period_us = round(1000000*(1.0/SAMPLING_FREQUENCY));
   
   //Serial.begin(9600);       // use the serial port
 
@@ -173,14 +97,15 @@ void setup() {
 // List of patterns to cycle through.  Each is defined as a separate function below.
 typedef void (*SimplePatternList[])();
 
-SimplePatternList gPatterns = {RainbowColors_stop, RainbowStripeColors_stop, OceanColors_stop, LavaColors_stop, ForestColors_stop, CloudColors_stop, PartyColors_stop,
-RainbowColors_fade, RainbowStripeColors_fade, OceanColors_fade, LavaColors_fade, ForestColors_fade, CloudColors_fade, PartyColors_fade, //White_fade,
+SimplePatternList gPatterns = {FFT_color};
+/*
+SimplePatternList gPatterns = {RainbowColors_fade, RainbowStripeColors_fade, OceanColors_fade, LavaColors_fade, ForestColors_fade, CloudColors_fade, PartyColors_fade, //White_fade,
 RainbowColors_bars_fast, OceanColors_bars_fast, ForestColors_bars_fast, CloudColors_bars_fast, PartyColors_bars_fast,
 RainbowColors_bars_slow, OceanColors_bars_slow, ForestColors_bars_slow, CloudColors_bars_slow, PartyColors_bars_slow,
 RainbowColors_react, White_react,
 RainbowColors_withGlitter_react, RainbowStripeColors_withGlitter_react, OceanColors_withGlitter_react, LavaColors_withGlitter_react, ForestColors_withGlitter_react, CloudColors_withGlitter_react, PartyColors_withGlitter_react,
 rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm, goaround, rainbow2, rainbowWithGlitter2, confetti2, sinelon2, juggle2, bpm2 };
-
+*/
 
 uint8_t gCurrentPatternNumber = 0; // Index number of which pattern is current
 uint8_t gHue = 0; // rotating "base color" used by many of the patterns
@@ -188,23 +113,48 @@ uint8_t delta_gHue = DELTA_gHUE_BASE; // step for rotating the base color
 //uint8_t trigger = 0; // Globaler Trigger Wert, benutzbar um ein Triggerevent an Pattern-Funktion weiterzuleiten
 uint8_t on = 0;
 uint8_t brightnessSwitchPressed=0;
+double vReal[SAMPLES];
+double vImag[SAMPLES];
+uint8_t FFTBins[NUM_LEDS_PER_STRIP];
+int SamplesPerBin= SAMPLES/NUM_LEDS_PER_STRIP;   //Die 2 muss da sein, wegen der Symmetrie der FFT
+
 
 volatile uint8_t trigger=0;  //Globaler Trigger Wert, wird von Interrupt-Funktion "setTrigger" genutzt um Trigger an loop weiterzugeben. Muss dazu als "volatile" definiert werden.
 volatile uint8_t brightnessTrigger=0;  //Globaler Trigger Wert, wird von Interrupt-Funktion "setTrigger" genutzt um Trigger an loop weiterzugeben. Muss dazu als "volatile" definiert werden.
   
 void loop()
 { 
-  static bool approach_detected=false;  //holds information if approach was detected
-  
-  //detect approach
-  EVERY_N_MILLISECONDS( 10 ) {approach_detected=detectApproach();}
+    // SAMPLING 
+  for(int i=0; i<SAMPLES; i++)
+  {
+    microseconds = micros();    //Overflows after around 70 minutes!
+       
+    vReal[i] = analogRead(0);
+    vImag[i] = 0;
     
-  // Call the current pattern function once, updating the 'leds' array
-  if (approach_detected){
-    Red_react();
-  } else {
-    gPatterns[gCurrentPatternNumber]();
+    while(micros() < (microseconds + sampling_period_us)){
+    }
   }
+  // FFT
+  FFT.Windowing(vReal, SAMPLES, FFT_WIN_TYP_HAMMING, FFT_FORWARD);
+  FFT.Compute(vReal, vImag, SAMPLES, FFT_FORWARD);
+  FFT.ComplexToMagnitude(vReal, vImag, SAMPLES);
+    
+  //FFT_peak =  FFT.MajorPeak(vReal, SAMPLES, SAMPLING_FREQUENCY);
+    
+  double norm=1;
+  for (int i=0; i<NUM_LEDS_PER_STRIP; i++)
+  {
+    FFTBins[i]=0;
+    for (int j=i*SamplesPerBin; j <(i+1)*SamplesPerBin; j++)
+    { 
+      FFTBins[i]+=uint8_t(vReal[j]/norm); 
+    }
+  }
+
+    
+  gPatterns[gCurrentPatternNumber]();
+  
 
   // send the 'leds' array out to the actual LED strip
   // but only every 1000/FRAMES_PER_SECOND to keep the framerate modest and time for output modest
@@ -229,35 +179,6 @@ void loop()
 }
 
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
-
-bool detectApproach()
-{
-  const int mean_weight=50;
-  const float relative_threshold=0.6;
-  int sensor0reading;
-  int sensor1reading;
-  int sensor2reading;
-  int sensor3reading;
-  static long sensor0mean = sensor0.read();
-  static long sensor1mean = sensor1.read();
-  static long sensor2mean = sensor2.read();
-  static long sensor3mean = sensor3.read();
-
-  sensor0reading = sensor0.read();
-  sensor1reading = sensor1.read();
-  sensor2reading = sensor2.read();
-  sensor3reading = sensor3.read();
-  sensor0mean = (sensor0mean*mean_weight + sensor0reading)/(mean_weight+1);
-  sensor1mean = (sensor1mean*mean_weight + sensor1reading)/(mean_weight+1);
-  sensor2mean = (sensor2mean*mean_weight + sensor2reading)/(mean_weight+1);
-  sensor3mean = (sensor3mean*mean_weight + sensor3reading)/(mean_weight+1);
-
-  if (sensor0reading < relative_threshold*sensor0mean || sensor1reading < relative_threshold*sensor1mean || sensor2reading < relative_threshold*sensor2mean || sensor3reading < relative_threshold*sensor3mean ){
-    return true;
-  } else {
-    return false;
-  } 
-}
 
 void nextPattern()
 {
@@ -1060,4 +981,17 @@ void CloudColors_stop()
 void PartyColors_stop() 
 { 
   PaletteColors_withGlitter_react(PartyColors_p) ;
+}
+
+//---------------------------------------------------
+//-- FFT faehige Leuchtmuster
+
+void FFT_color() 
+{
+  for(int i = 0; i < NUM_LEDS_PER_STRIP; i++) {
+    leds[0][i] = ColorFromPalette(OceanColors_p,min(FFTBins[i],255),min(FFTBins[i],255));
+  }
+  for(int i=1;i<NUM_STRIPS;i++){                                 //Parallel fuer jeden Arm gleich
+    memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP *sizeof(CRGB) );
+  }
 }

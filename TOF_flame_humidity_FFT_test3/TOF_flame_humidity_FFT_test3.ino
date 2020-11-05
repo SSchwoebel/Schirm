@@ -22,7 +22,7 @@ const int reactonbeatduration = 50;   //wie lange leuchten nach beat in ms
 const int switch_deadtime = 500;    //Totzeit des Tasters in ms. Um Prellen zu verhindern.
 const int barduration = 250; //wie lange der Balken im Muster "RainbowColors_bars" braucht um zu "schrumpfen", in ms
 const int SAMPLES=128;            //Anzahl der Samples fuer FFT. Must be a power of 2 
-const int SAMPLING_FREQUENCY=5000;//Sampling Frequenz fuer FFT. Hz, must be less than 10000 due to ADC
+const int SAMPLING_FREQUENCY=10000;//Sampling Frequenz fuer FFT. Hz, must be less than 10000 due to ADC
 
 // benutzte Pins
 const int switch_interrupt_pin=2; 
@@ -140,16 +140,23 @@ void loop()
     
   FFT_peak =  FFT.MajorPeak(vReal, SAMPLES, SAMPLING_FREQUENCY);
     
-  
+  double norm=0;
   for (int i=0; i<leds_per_strip; i++)
   {
     FFTBins[i]=0;
     for (int j=2+i*SamplesPerBin; j <2+(i+1)*SamplesPerBin; j++)
-    {
-      FFTBins[i]+=sqrt(pow(vReal[j],2) + pow(vImag[j],2))/SamplesPerBin;  
+    { 
+      FFTBins[i]+=vReal[j]; 
     }
-    
+    FFTBins[i]*=1.5*(i+1);
+    norm+=FFTBins[i];
   }
+
+  for (int i=0; i<leds_per_strip; i++)
+  {
+    FFTBins[i]=FFTBins[i]/norm;
+  }
+  
   
   
   /*for (int i=0; i<leds_per_strip; i++)
@@ -257,6 +264,7 @@ void FFT_color()
   // setze alle LEDs im Streifen auf eine Farbe
   //fill_solid(leds, leds_per_strip, CHSV(color_hue,255,255));
   for(int i = 0; i < leds_per_strip; i++) {
-    leds[i] = CHSV(FFTBins[i]/100.0*255,200,255);
+    //leds[i] = CHSV(min(FFTBins[i]*2*255,255),200,255);
+    leds[i] = CHSV(150,200,min(FFTBins[i]*2*255,255));
   }
 }
