@@ -217,12 +217,16 @@ void Color_react()
 
 void FFT_color() 
 {
-
+  int brightness;
+  int index;
   // setze alle LEDs im Streifen auf eine Farbe
   //fill_solid(leds, leds_per_strip, CHSV(color_hue,255,255));
   for(int i = 0; i < leds_per_strip; i++) {
     //leds[i] = CHSV(min(FFTBins[i]*255,255),200,255);
-    leds[i] = CHSV(150,200,min(FFTBins[i]*255,255));
+    //leds[i] = CHSV(150,200,min(FFTBins[i]*255,255));
     //leds[i] = CHSV(min(FFTBins[i]*255,255),200,min(FFTBins[i]*255,255));
+    brightness = min(FFTBins[i]*255,255);
+    index = min(FFTBins[i]*255,255);
+    leds[i] = ColorFromPalette(OceanColors_p, index, brightness);
   }
 }
