@@ -21,7 +21,7 @@ const int frames_per_second = 100;     //Haeufigkeit mit der LED-Streifen aufgef
 const int reactonbeatduration = 50;   //wie lange leuchten nach beat in ms
 const int switch_deadtime = 500;    //Totzeit des Tasters in ms. Um Prellen zu verhindern.
 const int barduration = 250; //wie lange der Balken im Muster "RainbowColors_bars" braucht um zu "schrumpfen", in ms
-const int SAMPLES=128;            //Anzahl der Samples fuer FFT. Must be a power of 2 
+const int SAMPLES=64;            //Anzahl der Samples fuer FFT. Must be a power of 2 
 const int SAMPLING_FREQUENCY=10000;//Sampling Frequenz fuer FFT. Hz, must be less than 10000 due to ADC
 
 // benutzte Pins
@@ -52,7 +52,7 @@ int starttime;  // wird gesetzt sobald Schalter gedrueckt wurde und benutzt um e
 int brightness=master_brightness; //variable fuer Helligkeit
 double vReal[SAMPLES];
 double vImag[SAMPLES];
-double FFTBins[leds_per_strip];
+uint8_t FFTBins[leds_per_strip];
 int SamplesPerBin= SAMPLES/leds_per_strip/2;   //Die 2 muss da sein, wegen der Symmetrie der FFT
 int FFT_peak;
 int color_hue;
@@ -123,15 +123,15 @@ void loop()
     
   //FFT_peak =  FFT.MajorPeak(vReal, SAMPLES, SAMPLING_FREQUENCY);
     
-  double norm=4096;
+  double norm=8;
   for (int i=0; i<leds_per_strip; i++)
   {
     FFTBins[i]=0;
     for (int j=2+i*SamplesPerBin; j <2+(i+1)*SamplesPerBin; j++)
     { 
-      FFTBins[i]+=vReal[j]; 
+      FFTBins[i]+= uint8_t(vReal[j]/norm); 
     }
-    FFTBins[i]=FFTBins[i]/norm;//*1.5*(i+1);
+    //FFTBins[i]=FFTBins[i];//*1.5*(i+1);
   }
 
   
@@ -225,8 +225,8 @@ void FFT_color()
     //leds[i] = CHSV(min(FFTBins[i]*255,255),200,255);
     //leds[i] = CHSV(150,200,min(FFTBins[i]*255,255));
     //leds[i] = CHSV(min(FFTBins[i]*255,255),200,min(FFTBins[i]*255,255));
-    brightness = min(FFTBins[i]*255,255);
-    index = min(FFTBins[i]*255,255);
+    brightness = min(FFTBins[i],255);
+    index = min(FFTBins[i],255);
     leds[i] = ColorFromPalette(OceanColors_p, index, brightness);
   }
 }
