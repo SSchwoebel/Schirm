@@ -97,7 +97,7 @@ void setup() {
 // List of patterns to cycle through.  Each is defined as a separate function below.
 typedef void (*SimplePatternList[])();
 
-SimplePatternList gPatterns = {RainbowColors_fade,FFT_color};
+SimplePatternList gPatterns = {RainbowColors_fade, RainbowColors_FFT, OceanColors_FFT};
 /*
 SimplePatternList gPatterns = {RainbowColors_fade, RainbowStripeColors_fade, OceanColors_fade, LavaColors_fade, ForestColors_fade, CloudColors_fade, PartyColors_fade, //White_fade,
 RainbowColors_bars_fast, OceanColors_bars_fast, ForestColors_bars_fast, CloudColors_bars_fast, PartyColors_bars_fast,
@@ -987,14 +987,24 @@ void PartyColors_stop()
 //---------------------------------------------------
 //-- FFT faehige Leuchtmuster
 
-void FFT_color() 
+void PaletteColors_FFT(CRGBPalette16 currentPalette) 
 {
   for(int i = 0; i < NUM_LEDS_PER_STRIP-1; i++) {
-    leds[0][i] = ColorFromPalette(OceanColors_p,min(FFTBins[i/LEDsPerBin],255),min(FFTBins[i/LEDsPerBin],255));
+    leds[0][i] = ColorFromPalette(currentPalette,min(FFTBins[i/LEDsPerBin],128),min(FFTBins[i/LEDsPerBin],255));
 
   }
   leds[0][NUM_LEDS_PER_STRIP-1]=CRGB::Black;
   for(int i=1;i<NUM_STRIPS;i++){                                 //Parallel fuer jeden Arm gleich
     memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP *sizeof(CRGB) );
   }
+}
+
+void OceanColors_FFT()
+{
+  PaletteColors_FFT(OceanColors_p);
+}
+
+void RainbowColors_FFT()
+{
+  PaletteColors_FFT(RainbowColors_p);
 }
