@@ -123,7 +123,7 @@ void loop()
     
   //FFT_peak =  FFT.MajorPeak(vReal, SAMPLES, SAMPLING_FREQUENCY);
     
-  double norm=8;
+  double norm=1;
   for (int i=0; i<leds_per_strip; i++)
   {
     FFTBins[i]=0;

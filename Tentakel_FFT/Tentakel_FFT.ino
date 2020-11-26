@@ -97,7 +97,7 @@ void setup() {
 // List of patterns to cycle through.  Each is defined as a separate function below.
 typedef void (*SimplePatternList[])();
 
-SimplePatternList gPatterns = {FFT_color};
+SimplePatternList gPatterns = {RainbowColors_fade,FFT_color};
 /*
 SimplePatternList gPatterns = {RainbowColors_fade, RainbowStripeColors_fade, OceanColors_fade, LavaColors_fade, ForestColors_fade, CloudColors_fade, PartyColors_fade, //White_fade,
 RainbowColors_bars_fast, OceanColors_bars_fast, ForestColors_bars_fast, CloudColors_bars_fast, PartyColors_bars_fast,
@@ -115,9 +115,10 @@ uint8_t on = 0;
 uint8_t brightnessSwitchPressed=0;
 double vReal[SAMPLES];
 double vImag[SAMPLES];
-uint8_t FFTBins[NUM_LEDS_PER_STRIP];
-int SamplesPerBin= SAMPLES/NUM_LEDS_PER_STRIP;   //Die 2 muss da sein, wegen der Symmetrie der FFT
-
+const int LEDsPerBin=3;
+const int LengthFFTBins=21;
+int SamplesPerBin=SAMPLES/LengthFFTBins/2;
+uint8_t FFTBins[LengthFFTBins];
 
 volatile uint8_t trigger=0;  //Globaler Trigger Wert, wird von Interrupt-Funktion "setTrigger" genutzt um Trigger an loop weiterzugeben. Muss dazu als "volatile" definiert werden.
 volatile uint8_t brightnessTrigger=0;  //Globaler Trigger Wert, wird von Interrupt-Funktion "setTrigger" genutzt um Trigger an loop weiterzugeben. Muss dazu als "volatile" definiert werden.
@@ -143,10 +144,10 @@ void loop()
   //FFT_peak =  FFT.MajorPeak(vReal, SAMPLES, SAMPLING_FREQUENCY);
     
   double norm=1;
-  for (int i=0; i<NUM_LEDS_PER_STRIP; i++)
+  for (int i=0; i<LengthFFTBins; i++)
   {
     FFTBins[i]=0;
-    for (int j=i*SamplesPerBin; j <(i+1)*SamplesPerBin; j++)
+    for (int j=4+i*SamplesPerBin; j <4+(i+1)*SamplesPerBin; j++)
     { 
       FFTBins[i]+=uint8_t(vReal[j]/norm); 
     }
@@ -988,9 +989,11 @@ void PartyColors_stop()
 
 void FFT_color() 
 {
-  for(int i = 0; i < NUM_LEDS_PER_STRIP; i++) {
-    leds[0][i] = ColorFromPalette(OceanColors_p,min(FFTBins[i],255),min(FFTBins[i],255));
+  for(int i = 0; i < NUM_LEDS_PER_STRIP-1; i++) {
+    leds[0][i] = ColorFromPalette(OceanColors_p,min(FFTBins[i/LEDsPerBin],255),min(FFTBins[i/LEDsPerBin],255));
+
   }
+  leds[0][NUM_LEDS_PER_STRIP-1]=CRGB::Black;
   for(int i=1;i<NUM_STRIPS;i++){                                 //Parallel fuer jeden Arm gleich
     memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP *sizeof(CRGB) );
   }
