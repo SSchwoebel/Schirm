@@ -114,7 +114,7 @@ uint8_t on = 0;
 double vReal[SAMPLES];
 double vImag[SAMPLES];
 const int LEDsPerBin=1;
-const int LengthFFTBins=21;
+const int LengthFFTBins=NUM_LEDS_PER_STRIP;
 int SamplesPerBin=SAMPLES/LengthFFTBins/2;
 uint8_t FFTBins[LengthFFTBins];
 
@@ -141,7 +141,7 @@ void loop()
     
   //FFT_peak =  FFT.MajorPeak(vReal, SAMPLES, SAMPLING_FREQUENCY);
     
-  double norm=1;
+  double norm=0.3;
   for (int i=0; i<LengthFFTBins; i++)
   {
     FFTBins[i]=0;
