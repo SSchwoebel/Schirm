@@ -114,8 +114,8 @@ uint8_t on = 0;
 double vReal[SAMPLES];
 double vImag[SAMPLES];
 const int LEDsPerBin=1;
-const int LengthFFTBins=NUM_LEDS_PER_STRIP;
-int SamplesPerBin=SAMPLES/LengthFFTBins/2;
+const int LengthFFTBins=NUM_LEDS_PER_STRIP/LEDsPerBin;
+double SamplesPerBin=double(SAMPLES)/LengthFFTBins/2;
 uint8_t FFTBins[LengthFFTBins];
 
 volatile uint8_t trigger=0;  //Globaler Trigger Wert, wird von Interrupt-Funktion "setTrigger" genutzt um Trigger an loop weiterzugeben. Muss dazu als "volatile" definiert werden.
@@ -124,30 +124,32 @@ volatile uint8_t switch_trigger=0;
 void loop()
 { 
     // SAMPLING 
-  for(int i=0; i<SAMPLES; i++)
-  {
-    microseconds = micros();    //Overflows after around 70 minutes!
+  EVERY_N_MILLISECONDS(50){
+    for(int i=0; i<SAMPLES; i++)
+    {
+      microseconds = micros();    //Overflows after around 70 minutes!
        
-    vReal[i] = analogRead(3);
-    vImag[i] = 0;
+      vReal[i] = analogRead(3);
+      vImag[i] = 0;
     
-    while(micros() < (microseconds + sampling_period_us)){
+      while(micros() < (microseconds + sampling_period_us)){
+      }
     }
-  }
-  // FFT
-  FFT.Windowing(vReal, SAMPLES, FFT_WIN_TYP_HAMMING, FFT_FORWARD);
-  FFT.Compute(vReal, vImag, SAMPLES, FFT_FORWARD);
-  FFT.ComplexToMagnitude(vReal, vImag, SAMPLES);
+    // FFT
+    FFT.Windowing(vReal, SAMPLES, FFT_WIN_TYP_HAMMING, FFT_FORWARD);
+    FFT.Compute(vReal, vImag, SAMPLES, FFT_FORWARD);
+    FFT.ComplexToMagnitude(vReal, vImag, SAMPLES);
     
-  //FFT_peak =  FFT.MajorPeak(vReal, SAMPLES, SAMPLING_FREQUENCY);
+    //FFT_peak =  FFT.MajorPeak(vReal, SAMPLES, SAMPLING_FREQUENCY);
     
-  double norm=0.3;
-  for (int i=0; i<LengthFFTBins; i++)
-  {
-    FFTBins[i]=0;
-    for (int j=4+i*SamplesPerBin; j <4+(i+1)*SamplesPerBin; j++)
-    { 
-      FFTBins[i]+=uint8_t(vReal[j]/norm); 
+    double norm=0.3;
+    for (int i=0; i<LengthFFTBins; i++)
+    {
+      FFTBins[i]=0;
+      for (int j=4+i*SamplesPerBin; j <4+(i+1)*SamplesPerBin; j++)
+      { 
+        FFTBins[i]+=uint8_t(vReal[j]/norm); 
+      }
     }
   }
 
