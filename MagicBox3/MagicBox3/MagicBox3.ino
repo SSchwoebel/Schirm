@@ -55,7 +55,8 @@ const int LEDsPerBin=1;
 const int LengthFFTBins=NUM_LEDS_PER_STRIP/LEDsPerBin;
 uint8_t FFTBins[LengthFFTBins];
 double FFTBinsXj[LengthFFTBins];
-double c = double(SAMPLES)/log(double(LengthFFTBins));
+int lowerCutoff=4;
+double c = double(SAMPLES-1-lowerCutoff)/log(double(LengthFFTBins));
 
 volatile uint8_t trigger=0;  //Globaler Trigger Wert, wird von Interrupt-Funktion "setTrigger" genutzt um Trigger an loop weiterzugeben. Muss dazu als "volatile" definiert werden.
 volatile uint8_t switch_trigger=0;
@@ -111,7 +112,8 @@ void setup() {
   //create array for x_j values for FFTBins
   for (int i=0;i<LengthFFTBins ; i++)
   {
-    FFTBinsXj[i]=c*log(double(LengthFFTBins)/double(LengthFFTBins-i));
+    //FFTBinsXj[i]=c*log(double(LengthFFTBins)/double(LengthFFTBins-i))+lowerCutoff;
+    FFTBinsXj[i]= i*double(LengthFFTBins)/SAMPLES;
   }
   
 
@@ -154,7 +156,7 @@ void loop()
     
     //FFT_peak =  FFT.MajorPeak(vReal, SAMPLES, SAMPLING_FREQUENCY);
     
-    double norm=3;
+    double norm=5;
     for (int i=0; i<LengthFFTBins; i++)
     {
       FFTBins[i] = int(norm*f(FFTBinsXj[i]));
