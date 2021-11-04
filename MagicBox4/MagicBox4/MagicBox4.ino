@@ -44,6 +44,25 @@ const int SAMPLING_FREQUENCY=10000;//Sampling Frequenz fuer FFT. Hz, must be les
 unsigned int sampling_period_us;
 unsigned long microseconds;
 
+uint8_t gCurrentPatternNumber = 0; // Index number of which pattern is current
+uint8_t gHue = 0; // rotating "base color" used by many of the patterns
+uint8_t delta_gHue = DELTA_gHUE_BASE; // step for rotating the base color
+//uint8_t trigger = 0; // Globaler Trigger Wert, benutzbar um ein Triggerevent an Pattern-Funktion weiterzuleiten
+uint8_t on = 0;
+double vReal[SAMPLES];
+double vImag[SAMPLES];
+const int LEDsPerBin=1;
+const int LengthFFTBins=NUM_LEDS_PER_STRIP/LEDsPerBin;
+uint8_t FFTBins[LengthFFTBins];
+double FFTBinsXj[LengthFFTBins];
+double FFTBinsXk[LengthFFTBins];
+int lowerCutoff=4;
+double c = double(SAMPLES-1-lowerCutoff)/log(double(LengthFFTBins));
+
+volatile uint8_t trigger=0;  //Globaler Trigger Wert, wird von Interrupt-Funktion "setTrigger" genutzt um Trigger an loop weiterzugeben. Muss dazu als "volatile" definiert werden.
+volatile uint8_t switch_trigger=0;
+  
+
 // Initialize Arduino FFTvolatile
 arduinoFFT FFT = arduinoFFT();
 
@@ -91,16 +110,24 @@ void setup() {
   
   //Serial.begin(9600);       // use the serial port
 
+  //create array for x_j values for FFTBins
+  for (int i=0;i<LengthFFTBins ; i++)
+  {
+    //FFTBinsXj[i]=c*log(double(LengthFFTBins)/double(LengthFFTBins-i))+lowerCutoff;
+    FFTBinsXk[i]= i*double(LengthFFTBins)/SAMPLES+lowerCutoff;
+  }
+  
+
 }
 
 // List of patterns to cycle through.  Each is defined as a separate function below.
 typedef void (*SimplePatternList[])();
 
-SimplePatternList gPatterns = {OceanColors_FFT};
-//SimplePatternList gPatterns = {RainbowColors_fade, RainbowColors_FFT, OceanColors_FFT};
+//SimplePatternList gPatterns = {OceanColors_FFT};
+SimplePatternList gPatterns = {RainbowColors_fade,RainbowColors_FFT, OceanColors_FFT};
 
-/*
-SimplePatternList gPatterns = {RainbowColors_FFT, OceanColors_FFT,RainbowColors_fade, RainbowStripeColors_fade, OceanColors_fade, LavaColors_fade, ForestColors_fade, CloudColors_fade, PartyColors_fade, //White_fade,
+
+/*SimplePatternList gPatterns = {RainbowColors_FFT, OceanColors_FFT,RainbowColors_fade, RainbowStripeColors_fade, OceanColors_fade, LavaColors_fade, ForestColors_fade, CloudColors_fade, PartyColors_fade, //White_fade,
 RainbowColors_bars_fast, OceanColors_bars_fast, ForestColors_bars_fast, CloudColors_bars_fast, PartyColors_bars_fast,
 RainbowColors_bars_slow, OceanColors_bars_slow, ForestColors_bars_slow, CloudColors_bars_slow, PartyColors_bars_slow,
 RainbowColors_react, White_react,
@@ -108,20 +135,7 @@ RainbowColors_withGlitter_react, RainbowStripeColors_withGlitter_react, OceanCol
 rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm, goaround, rainbow2, rainbowWithGlitter2, confetti2, sinelon2, juggle2, bpm2 };
 */
 
-uint8_t gCurrentPatternNumber = 0; // Index number of which pattern is current
-uint8_t gHue = 0; // rotating "base color" used by many of the patterns
-uint8_t delta_gHue = DELTA_gHUE_BASE; // step for rotating the base color
-//uint8_t trigger = 0; // Globaler Trigger Wert, benutzbar um ein Triggerevent an Pattern-Funktion weiterzuleiten
-uint8_t on = 0;
-double vReal[SAMPLES];
-double vImag[SAMPLES];
-const int LengthFFTBins=NUM_LEDS_PER_STRIP;
-uint8_t FFTBins[LengthFFTBins];
-double GaussBreite=5;
 
-volatile uint8_t trigger=0;  //Globaler Trigger Wert, wird von Interrupt-Funktion "setTrigger" genutzt um Trigger an loop weiterzugeben. Muss dazu als "volatile" definiert werden.
-volatile uint8_t switch_trigger=0;
-  
 void loop()
 { 
     // SAMPLING 
@@ -131,37 +145,28 @@ void loop()
       microseconds = micros();    //Overflows after around 70 minutes!
        
       vReal[i] = analogRead(3);
-      vImag[i] = 0;
+      vImag[i] = 0.0;
     
       while(micros() < (microseconds + sampling_period_us)){
       }
     }
     // FFT
-    FFT.Windowing(vReal, SAMPLES, FFT_WIN_TYP_HAMMING, FFT_FORWARD);
+    FFT.Windowing(vReal, SAMPLES, FFT_WIN_TYP_HANN, FFT_FORWARD);
     FFT.Compute(vReal, vImag, SAMPLES, FFT_FORWARD);
     FFT.ComplexToMagnitude(vReal, vImag, SAMPLES);
     
     //FFT_peak =  FFT.MajorPeak(vReal, SAMPLES, SAMPLING_FREQUENCY);
     
-    double norm=1;
-    
+    double norm=4/2;
     for (int i=0; i<LengthFFTBins; i++)
     {
-      double f=0;
-      double mu=double(SAMPLES/2)/LengthFFTBins*i;
-      int lower=int(mu-GaussBreite/2.0);
-      int upper=int(mu+GaussBreite/2.0);
-      if (lower<0) 
-      {
-        lower=0;
-      }
-      
-      for (int j=lower; j<=upper; j++)
-      {
-        f+=norm*vReal[j]*exp(-0.5*pow((j-mu)/GaussBreite,2));
- 
-      }
-      FFTBins[i]=uint8_t(f);
+      //FFTBins[i] = int(norm*(f(FFTBinsXj[i])+f(FFTBinsXk[i])));
+      //FFTBins[i] = int(exp(norm*(f(FFTBinsXj[i])+f(FFTBinsXk[i]))/46.0));
+      //FFTBins[i] = int(pow(norm*(f(FFTBinsXj[i])+f(FFTBinsXk[i]))/15.9,2));
+      //FFTBins[i] = int(pow(norm*(f(FFTBinsXj[i])+f(FFTBinsXk[i]))/63.8,4));
+      //FFTBins[i] = int(pow(norm*(f(FFTBinsXj[i])+f(FFTBinsXk[i]))/40.2,3));
+      FFTBins[i] = int(pow(2*norm*(f(FFTBinsXk[i]))/40.2,3));
+      //FFTBins[i] = int(pow(2*norm*(f(FFTBinsXj[i]))/40.2,3));
     }
   }
 
@@ -179,7 +184,7 @@ void loop()
 
   // do some periodic updates
   EVERY_N_MILLISECONDS( 20 ) { gHue = gHue + delta_gHue; } // slowly cycle the "base color" through the rainbow
-  EVERY_N_SECONDS( 60 ) { nextPattern_random(); } // change patterns periodically
+  EVERY_N_SECONDS( 600 ) { nextPattern_random(); } // change patterns periodically
   EVERY_N_MILLISECONDS( 1000 ) {
     if (switch_trigger == 1)
       nextPattern(); 
@@ -200,6 +205,12 @@ void loop()
 }
 
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
+
+double f(double x)
+{
+  //return (vReal[int(x)+1]-vReal[int(x)])*(x-int(x))+vReal[int(x)];
+  return 0.2*x*((vReal[int(x)+1]-vReal[int(x)])*(x-int(x))+vReal[int(x)]);
+}
 
 void setSwitchTrigger()
 {
@@ -993,7 +1004,7 @@ void PartyColors_stop()
 void PaletteColors_FFT(CRGBPalette16 currentPalette) 
 {
   for(int i = 0; i < NUM_LEDS_PER_STRIP-1; i++) {
-    leds[0][i] = ColorFromPalette(currentPalette,min(FFTBins[i],128),min(FFTBins[i],255));
+    leds[0][i] = ColorFromPalette(currentPalette,min(FFTBins[i/LEDsPerBin],128),min(FFTBins[i/LEDsPerBin],255));
 
   }
   leds[0][NUM_LEDS_PER_STRIP-1]=CRGB::Black;

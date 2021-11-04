@@ -55,6 +55,7 @@ const int LEDsPerBin=1;
 const int LengthFFTBins=NUM_LEDS_PER_STRIP/LEDsPerBin;
 uint8_t FFTBins[LengthFFTBins];
 double FFTBinsXj[LengthFFTBins];
+double FFTBinsXk[LengthFFTBins];
 int lowerCutoff=4;
 double c = double(SAMPLES-1-lowerCutoff)/log(double(LengthFFTBins));
 
@@ -112,8 +113,8 @@ void setup() {
   //create array for x_j values for FFTBins
   for (int i=0;i<LengthFFTBins ; i++)
   {
-    //FFTBinsXj[i]=c*log(double(LengthFFTBins)/double(LengthFFTBins-i))+lowerCutoff;
-    FFTBinsXj[i]= i*double(LengthFFTBins)/SAMPLES;
+    FFTBinsXj[i]=c*log(double(LengthFFTBins)/double(LengthFFTBins-i))+lowerCutoff;
+    FFTBinsXk[i]= i*double(LengthFFTBins)/SAMPLES;
   }
   
 
@@ -122,8 +123,8 @@ void setup() {
 // List of patterns to cycle through.  Each is defined as a separate function below.
 typedef void (*SimplePatternList[])();
 
-SimplePatternList gPatterns = {OceanColors_FFT};
-//SimplePatternList gPatterns = {RainbowColors_fade, RainbowColors_FFT, OceanColors_FFT};
+//SimplePatternList gPatterns = {OceanColors_FFT};
+SimplePatternList gPatterns = {RainbowColors_fade,RainbowColors_FFT, OceanColors_FFT};
 
 
 /*SimplePatternList gPatterns = {RainbowColors_FFT, OceanColors_FFT,RainbowColors_fade, RainbowStripeColors_fade, OceanColors_fade, LavaColors_fade, ForestColors_fade, CloudColors_fade, PartyColors_fade, //White_fade,
@@ -144,22 +145,22 @@ void loop()
       microseconds = micros();    //Overflows after around 70 minutes!
        
       vReal[i] = analogRead(3);
-      vImag[i] = 0;
+      vImag[i] = 0.0;
     
       while(micros() < (microseconds + sampling_period_us)){
       }
     }
     // FFT
-    FFT.Windowing(vReal, SAMPLES, FFT_WIN_TYP_HAMMING, FFT_FORWARD);
+    FFT.Windowing(vReal, SAMPLES, FFT_WIN_TYP_HANN, FFT_FORWARD);
     FFT.Compute(vReal, vImag, SAMPLES, FFT_FORWARD);
     FFT.ComplexToMagnitude(vReal, vImag, SAMPLES);
     
     //FFT_peak =  FFT.MajorPeak(vReal, SAMPLES, SAMPLING_FREQUENCY);
     
-    double norm=5;
+    double norm=4/2;
     for (int i=0; i<LengthFFTBins; i++)
     {
-      FFTBins[i] = int(norm*f(FFTBinsXj[i]));
+      FFTBins[i] = int(norm*(f(FFTBinsXj[i])+f(FFTBinsXk[i])));
     }
   }
 
@@ -177,7 +178,7 @@ void loop()
 
   // do some periodic updates
   EVERY_N_MILLISECONDS( 20 ) { gHue = gHue + delta_gHue; } // slowly cycle the "base color" through the rainbow
-  EVERY_N_SECONDS( 60 ) { nextPattern_random(); } // change patterns periodically
+  EVERY_N_SECONDS( 600 ) { nextPattern_random(); } // change patterns periodically
   EVERY_N_MILLISECONDS( 1000 ) {
     if (switch_trigger == 1)
       nextPattern(); 

@@ -96,9 +96,11 @@ void setup() {
 // List of patterns to cycle through.  Each is defined as a separate function below.
 typedef void (*SimplePatternList[])();
 
-SimplePatternList gPatterns = {RainbowColors_fade, RainbowColors_FFT, OceanColors_FFT};
-/*
-SimplePatternList gPatterns = {RainbowColors_fade, RainbowStripeColors_fade, OceanColors_fade, LavaColors_fade, ForestColors_fade, CloudColors_fade, PartyColors_fade, //White_fade,
+SimplePatternList gPatterns = {OceanColors_FFT};
+//SimplePatternList gPatterns = {RainbowColors_fade, RainbowColors_FFT, OceanColors_FFT};
+
+
+/*SimplePatternList gPatterns = {RainbowColors_FFT, OceanColors_FFT,RainbowColors_fade, RainbowStripeColors_fade, OceanColors_fade, LavaColors_fade, ForestColors_fade, CloudColors_fade, PartyColors_fade, //White_fade,
 RainbowColors_bars_fast, OceanColors_bars_fast, ForestColors_bars_fast, CloudColors_bars_fast, PartyColors_bars_fast,
 RainbowColors_bars_slow, OceanColors_bars_slow, ForestColors_bars_slow, CloudColors_bars_slow, PartyColors_bars_slow,
 RainbowColors_react, White_react,
@@ -167,7 +169,7 @@ void loop()
 
   // do some periodic updates
   EVERY_N_MILLISECONDS( 20 ) { gHue = gHue + delta_gHue; } // slowly cycle the "base color" through the rainbow
-  EVERY_N_SECONDS( 120 ) { nextPattern_random(); } // change patterns periodically
+  EVERY_N_SECONDS( 60 ) { nextPattern_random(); } // change patterns periodically
   EVERY_N_MILLISECONDS( 1000 ) {
     if (switch_trigger == 1)
       nextPattern(); 
