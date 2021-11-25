@@ -165,8 +165,8 @@ void loop()
       //FFTBins[i] = int(pow(norm*(f(FFTBinsXj[i])+f(FFTBinsXk[i]))/15.9,2));
       //FFTBins[i] = int(pow(norm*(f(FFTBinsXj[i])+f(FFTBinsXk[i]))/63.8,4));
       //FFTBins[i] = int(pow(norm*(f(FFTBinsXj[i])+f(FFTBinsXk[i]))/40.2,3));
-      //FFTBins[i] = int(pow(norm*(f(FFTBinsXk[i]))/40.2,3));
-      FFTBins[i] = int(0.1*norm*(f(FFTBinsXk[i])));
+      FFTBins[i] = int(pow(norm*(f(FFTBinsXk[i]))/40.2,3));
+      //FFTBins[i] = int(0.05*norm*(f(FFTBinsXk[i])));
       //FFTBins[i] = int(pow(2*norm*(f(FFTBinsXj[i]))/40.2,3));
     }
   }
