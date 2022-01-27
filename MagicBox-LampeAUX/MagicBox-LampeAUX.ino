@@ -1036,7 +1036,7 @@ void PaletteColors_FFT_react(CRGBPalette16 currentPalette)                      
     max_f0 = f0;
   }
   
-  FastLED.setBrightness(int(255*f0/max_f0));
+  FastLED.setBrightness(int(BRIGHTNESS*f0/max_f0));
   ParaPaletteColors(currentPalette);                              //Arme mit Palettenfarben fuellen
   for(int i=0; i< NUM_STRIPS*NUM_LEDS_PER_STRIP;i++){
       leds_flat[i].nscale8_video( 255);                         //ganz boeser hack von sarah, tut nichts, entfernt ruckeln
