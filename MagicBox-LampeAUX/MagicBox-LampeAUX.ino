@@ -124,7 +124,7 @@ void setup() {
 typedef void (*SimplePatternList[])();
 
 //SimplePatternList gPatterns = {OceanColors_FFT};
-SimplePatternList gPatterns = {RainbowColors_FFT_react, RainbowColors_fade,RainbowColors_FFT, OceanColors_FFT};
+SimplePatternList gPatterns = {PaletteColors_FFT_bars, RainbowColors_FFT_react, RainbowColors_fade,RainbowColors_FFT, OceanColors_FFT};
 
 
 /*SimplePatternList gPatterns = {RainbowColors_FFT, OceanColors_FFT,RainbowColors_fade, RainbowStripeColors_fade, OceanColors_fade, LavaColors_fade, ForestColors_fade, CloudColors_fade, PartyColors_fade, //White_fade,
@@ -1025,6 +1025,9 @@ void RainbowColors_FFT()
 }
 
 
+//-------------------------------------------------------------------
+
+// base function brightness reaction based on FFT
 
 void PaletteColors_FFT_react(CRGBPalette16 currentPalette)                         //for convenience, is called by the specialized PatternFunctions
 {
@@ -1071,3 +1074,57 @@ void PartyColors_FFT_react()
 { 
   PaletteColors_withGlitter_react(PartyColors_p) ;
 }
+
+
+//-------------------------------------------------------------------
+
+// base function for bars based on FFT
+
+void PaletteColors_FFT_bars(CRGBPalette16 currentPalette, int barduration) 
+{
+  int n;
+  
+  FastLED.setBrightness(int(BRIGHTNESS));
+  
+  n = int(f(0));
+  ParaPaletteColors_bar(currentPalette, n);
+  
+  for(int i=0; i< NUM_STRIPS*NUM_LEDS_PER_STRIP;i++){
+      leds_flat[i].nscale8_video( 85);                         //ganz boeser hack von sarah, tut nichts, entfernt ruckeln
+  }
+}
+
+// functions with color palette
+
+void RainbowColors_FFT_bars() 
+{
+  int barduration = 250;
+  PaletteColors_bars(RainbowColors_p, barduration);
+}
+
+void LavaColors_FFT_bars() 
+{
+  int barduration = 250;
+  PaletteColors_bars(LavaColors_p, barduration);
+}
+
+void OceanColors_FFT_bars() 
+{
+  int barduration = 250;
+  PaletteColors_bars(OceanColors_p, barduration);
+}
+
+void ForestColors_FFT_bars() 
+{
+  int barduration = 250;
+  PaletteColors_bars(ForestColors_p, barduration);
+}
+
+void CloudColors_FFT_bars() 
+{ 
+  PaletteColors_withGlitter_react(CloudColors_p) ;
+}
+
+void PartyColors_FFT_bars() 
+{ 
+  PaletteColors_withGlitter_react(PartyColors_p) ;
