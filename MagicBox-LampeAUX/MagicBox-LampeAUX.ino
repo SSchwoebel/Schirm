@@ -1084,7 +1084,7 @@ void PaletteColors_FFT_bars(CRGBPalette16 currentPalette, int barduration)
   
   FastLED.setBrightness(int(BRIGHTNESS));
   
-  n = int(f(0));
+  n = int(NUM_LEDS_PER_STRIP*f(0)/255);
   ParaPaletteColors_bar(currentPalette, n);
   
   for(int i=0; i< NUM_STRIPS*NUM_LEDS_PER_STRIP;i++){
