@@ -11,7 +11,7 @@ FASTLED_USING_NAMESPACE
 
 #define DATA_PINS_START 22
 #define NUM_STRIPS 4
-#define NUM_LEDS_PER_STRIP 10//65
+#define NUM_LEDS_PER_STRIP 65
 #define BARS_INSIDE 0
 #define DELTA_HUE 2
 #define DELTA_gHUE_BASE 1
@@ -106,7 +106,7 @@ void setup() {
      }
 
   //calculate sampling period for FFT from Sampling Frequency
-  sampling_period_us = round(1000000*(1.0/SAMPLING_FREQUENCY));
+  sampling_period_us = round(SAMPLES*(1.0/SAMPLING_FREQUENCY));
   
   //Serial.begin(9600);       // use the serial port
 
