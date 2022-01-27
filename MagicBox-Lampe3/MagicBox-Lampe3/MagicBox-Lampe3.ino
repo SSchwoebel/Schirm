@@ -11,7 +11,7 @@ FASTLED_USING_NAMESPACE
 
 #define DATA_PINS_START 22
 #define NUM_STRIPS 4
-#define NUM_LEDS_PER_STRIP 65
+#define NUM_LEDS_PER_STRIP 10//65
 #define BARS_INSIDE 0
 #define DELTA_HUE 2
 #define DELTA_gHUE_BASE 1
@@ -54,7 +54,7 @@ double vImag[SAMPLES];
 const int LEDsPerBin=1;
 const int LengthFFTBins=NUM_LEDS_PER_STRIP/LEDsPerBin;
 uint8_t FFTBins[LengthFFTBins];
-//double FFTBinsXj[LengthFFTBins];
+double FFTBinsXj[LengthFFTBins];
 double FFTBinsXk[LengthFFTBins];
 int lowerCutoff=4;
 double c = double(SAMPLES-1-lowerCutoff)/log(double(LengthFFTBins));
@@ -191,11 +191,13 @@ void loop()
       switch_trigger=0;      
   }
 
+  /*
   EVERY_N_MILLISECONDS(100){ 
     BRIGHTNESS=analogRead(brightnessPoti)/8;
     FastLED.setBrightness(int(BRIGHTNESS));
     }
-
+  */
+  
   //debug
   //Serial.print(gCurrentPatternNumber);
   //Serial.println();
@@ -1003,11 +1005,10 @@ void PartyColors_stop()
 
 void PaletteColors_FFT(CRGBPalette16 currentPalette) 
 {
-  for(int i = 0; i < NUM_LEDS_PER_STRIP-1; i++) {
+  for(int i = 0; i < NUM_LEDS_PER_STRIP; i++) {
     leds[0][i] = ColorFromPalette(currentPalette,min(FFTBins[i/LEDsPerBin],128),min(FFTBins[i/LEDsPerBin],255));
 
   }
-  leds[0][NUM_LEDS_PER_STRIP-1]=CRGB::Black;
   for(int i=1;i<NUM_STRIPS;i++){                                 //Parallel fuer jeden Arm gleich
     memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP *sizeof(CRGB) );
   }

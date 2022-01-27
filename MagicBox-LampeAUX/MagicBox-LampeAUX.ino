@@ -54,7 +54,7 @@ double vImag[SAMPLES];
 const int LEDsPerBin=1;
 const int LengthFFTBins=NUM_LEDS_PER_STRIP/LEDsPerBin;
 uint8_t FFTBins[LengthFFTBins];
-//double FFTBinsXj[LengthFFTBins];
+double FFTBinsXj[LengthFFTBins];
 double FFTBinsXk[LengthFFTBins];
 int lowerCutoff=4;
 double c = double(SAMPLES-1-lowerCutoff)/log(double(LengthFFTBins));
@@ -144,7 +144,7 @@ void loop()
     {
       microseconds = micros();    //Overflows after around 70 minutes!
        
-      vReal[i] = analogRead(3);
+      vReal[i] = analogRead(5);
       vImag[i] = 0.0;
     
       while(micros() < (microseconds + sampling_period_us)){
@@ -165,8 +165,9 @@ void loop()
       //FFTBins[i] = int(pow(norm*(f(FFTBinsXj[i])+f(FFTBinsXk[i]))/15.9,2));
       //FFTBins[i] = int(pow(norm*(f(FFTBinsXj[i])+f(FFTBinsXk[i]))/63.8,4));
       //FFTBins[i] = int(pow(norm*(f(FFTBinsXj[i])+f(FFTBinsXk[i]))/40.2,3));
-      FFTBins[i] = int(pow(norm*(f(FFTBinsXk[i]))/40.2,3));
+      //FFTBins[i] = int(pow(norm*(f(FFTBinsXk[i]))/40.2,3));
       //FFTBins[i] = int(pow(2*norm*(f(FFTBinsXj[i]))/40.2,3));
+      FFTBins[i] = int(f(FFTBinsXk[i]));
     }
   }
 
@@ -191,11 +192,13 @@ void loop()
       switch_trigger=0;      
   }
 
+  /*
   EVERY_N_MILLISECONDS(100){ 
     BRIGHTNESS=analogRead(brightnessPoti)/8;
     FastLED.setBrightness(int(BRIGHTNESS));
     }
-
+  */
+  
   //debug
   //Serial.print(gCurrentPatternNumber);
   //Serial.println();
@@ -208,8 +211,7 @@ void loop()
 
 double f(double x)
 {
-  //return (vReal[int(x)+1]-vReal[int(x)])*(x-int(x))+vReal[int(x)];
-  return ((vReal[int(x)+1]-vReal[int(x)])*(x-int(x))+vReal[int(x)]);
+  return (vReal[int(x)+1]-vReal[int(x)])*(x-int(x))+vReal[int(x)];
 }
 
 void setSwitchTrigger()
@@ -1003,11 +1005,10 @@ void PartyColors_stop()
 
 void PaletteColors_FFT(CRGBPalette16 currentPalette) 
 {
-  for(int i = 0; i < NUM_LEDS_PER_STRIP-1; i++) {
+  for(int i = 0; i < NUM_LEDS_PER_STRIP; i++) {
     leds[0][i] = ColorFromPalette(currentPalette,min(FFTBins[i/LEDsPerBin],128),min(FFTBins[i/LEDsPerBin],255));
 
   }
-  leds[0][NUM_LEDS_PER_STRIP-1]=CRGB::Black;
   for(int i=1;i<NUM_STRIPS;i++){                                 //Parallel fuer jeden Arm gleich
     memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP *sizeof(CRGB) );
   }
