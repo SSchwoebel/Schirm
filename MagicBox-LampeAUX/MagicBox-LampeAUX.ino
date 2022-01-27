@@ -1126,3 +1126,4 @@ void CloudColors_FFT_bars()
 void PartyColors_FFT_bars() 
 { 
   PaletteColors_withGlitter_react(PartyColors_p) ;
+}
