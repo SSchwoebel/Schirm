@@ -61,6 +61,7 @@ double c = double(SAMPLES-1-lowerCutoff)/log(double(LengthFFTBins));
 
 volatile uint8_t trigger=0;  //Globaler Trigger Wert, wird von Interrupt-Funktion "setTrigger" genutzt um Trigger an loop weiterzugeben. Muss dazu als "volatile" definiert werden.
 volatile uint8_t switch_trigger=0;
+volatile int max_f0=1;
   
 
 // Initialize Arduino FFTvolatile
@@ -1028,8 +1029,13 @@ void RainbowColors_FFT()
 
 void PaletteColors_FFT_react(CRGBPalette16 currentPalette)                         //for convenience, is called by the specialized PatternFunctions
 {
+  int f0 = f(0);
 
-  FastLED.setBrightness(int(f(0)));
+  if( f0 > max_f0) {
+    max_f0 = f0;
+  }
+  
+  FastLED.setBrightness(int(255*f0/max_f0));
   ParaPaletteColors(currentPalette);                              //Arme mit Palettenfarben fuellen
   for(int i=0; i< NUM_STRIPS*NUM_LEDS_PER_STRIP;i++){
       leds_flat[i].nscale8_video( 255);                         //ganz boeser hack von sarah, tut nichts, entfernt ruckeln
@@ -1080,10 +1086,14 @@ void PartyColors_FFT_react()
 void PaletteColors_FFT_bars(CRGBPalette16 currentPalette, int barduration) 
 {
   int n;
+  int f0 = f(0);
   
   FastLED.setBrightness(int(BRIGHTNESS));
-  
-  n = int(NUM_LEDS_PER_STRIP*f(0)/255);
+
+  if( f0 > max_f0) {
+    max_f0 = f0;
+  }
+  n = int(NUM_LEDS_PER_STRIP*f0/max_f0);
   ParaPaletteColors_bar(currentPalette, n);
   
   for(int i=0; i< NUM_STRIPS*NUM_LEDS_PER_STRIP;i++){
