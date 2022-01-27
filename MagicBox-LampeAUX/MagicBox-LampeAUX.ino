@@ -124,7 +124,7 @@ void setup() {
 typedef void (*SimplePatternList[])();
 
 //SimplePatternList gPatterns = {OceanColors_FFT};
-SimplePatternList gPatterns = {RainbowColors_fade,RainbowColors_FFT, OceanColors_FFT};
+SimplePatternList gPatterns = {RainbowColors_FFT_react, RainbowColors_fade,RainbowColors_FFT, OceanColors_FFT};
 
 
 /*SimplePatternList gPatterns = {RainbowColors_FFT, OceanColors_FFT,RainbowColors_fade, RainbowStripeColors_fade, OceanColors_fade, LavaColors_fade, ForestColors_fade, CloudColors_fade, PartyColors_fade, //White_fade,
@@ -1020,4 +1020,52 @@ void OceanColors_FFT()
 void RainbowColors_FFT()
 {
   PaletteColors_FFT(RainbowColors_p);
+}
+
+
+
+void PaletteColors_FFT_react(CRGBPalette16 currentPalette)                         //for convenience, is called by the specialized PatternFunctions
+{
+
+  FastLED.setBrightness(int(f(0)));
+  ParaPaletteColors(currentPalette);                              //Arme mit Palettenfarben fuellen
+  for(int i=0; i< NUM_STRIPS*NUM_LEDS_PER_STRIP;i++){
+      leds_flat[i].nscale8_video( 255);                         //ganz boeser hack von sarah, tut nichts, entfernt ruckeln
+  } 
+}
+
+void RainbowColors_FFT_react() 
+{
+  PaletteColors_FFT_react(RainbowColors_p) ;
+}
+
+
+void LavaColors_FFT_react() 
+{ 
+  PaletteColors_FFT_react(LavaColors_p) ;
+}
+
+void OceanColors_FFT_react() 
+{ 
+  PaletteColors_FFT_react(OceanColors_p) ;
+}
+
+void ForestColors_FFT_react() 
+{ 
+  PaletteColors_FFT_react(ForestColors_p) ;
+}
+
+void RainbowStripeColors_FFT_react() 
+{ 
+  PaletteColors_FFT_react(RainbowStripeColors_p) ;
+}
+
+void CloudColors_FFT_react() 
+{ 
+  PaletteColors_withGlitter_react(CloudColors_p) ;
+}
+
+void PartyColors_FFT_react() 
+{ 
+  PaletteColors_withGlitter_react(PartyColors_p) ;
 }
