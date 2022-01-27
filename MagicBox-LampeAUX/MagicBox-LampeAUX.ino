@@ -107,7 +107,7 @@ void setup() {
      }
 
   //calculate sampling period for FFT from Sampling Frequency
-  sampling_period_us = round(SAMPLES*(1.0/SAMPLING_FREQUENCY));
+  sampling_period_us = round(1000000*(1.0/SAMPLING_FREQUENCY));
   
   //Serial.begin(9600);       // use the serial port
 
@@ -194,7 +194,7 @@ void loop()
 
   EVERY_N_MILLISECONDS(100){ 
     BRIGHTNESS=analogRead(brightnessPoti)/8;
-    FastLED.setBrightness(int(BRIGHTNESS));
+    //FastLED.setBrightness(int(BRIGHTNESS));
     }
   
   //debug
@@ -1010,6 +1010,7 @@ void PaletteColors_FFT(CRGBPalette16 currentPalette)
   for(int i=1;i<NUM_STRIPS;i++){                                 //Parallel fuer jeden Arm gleich
     memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP *sizeof(CRGB) );
   }
+  FastLED.setBrightness(int(BRIGHTNESS));
 }
 
 void OceanColors_FFT()
@@ -1037,9 +1038,9 @@ void PaletteColors_FFT_react(CRGBPalette16 currentPalette)                      
   
   FastLED.setBrightness(int(BRIGHTNESS*f0/max_f0));
   ParaPaletteColors(currentPalette);                              //Arme mit Palettenfarben fuellen
-  for(int i=0; i< NUM_STRIPS*NUM_LEDS_PER_STRIP;i++){
+  /*for(int i=0; i< NUM_STRIPS*NUM_LEDS_PER_STRIP;i++){
       leds_flat[i].nscale8_video( 255);                         //ganz boeser hack von sarah, tut nichts, entfernt ruckeln
-  } 
+  } */
 }
 
 void RainbowColors_FFT_react() 
