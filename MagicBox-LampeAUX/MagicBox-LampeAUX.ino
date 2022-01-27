@@ -135,7 +135,6 @@ RainbowColors_withGlitter_react, RainbowStripeColors_withGlitter_react, OceanCol
 rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm, goaround, rainbow2, rainbowWithGlitter2, confetti2, sinelon2, juggle2, bpm2 };
 */
 
-
 void loop()
 { 
     // SAMPLING 
