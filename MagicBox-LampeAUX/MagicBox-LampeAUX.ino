@@ -11,7 +11,7 @@ FASTLED_USING_NAMESPACE
 
 #define DATA_PINS_START 22
 #define NUM_STRIPS 4
-#define NUM_LEDS_PER_STRIP 65
+#define NUM_LEDS_PER_STRIP 10//65
 #define BARS_INSIDE 0
 #define DELTA_HUE 2
 #define DELTA_gHUE_BASE 1
@@ -89,7 +89,7 @@ void setup() {
   //set interrupt pin for Knock Sensor
   pinMode(knock_interrupt_pin,INPUT);
   //  attachInterrupt(digitalPinToInterrupt(knock_interrupt_pin),setTrigger,RISING);
-  attachInterrupt(digitalPinToInterrupt(knock_interrupt_pin),setTrigger,HIGH); 
+  //attachInterrupt(digitalPinToInterrupt(knock_interrupt_pin),setTrigger,HIGH); 
   
   //set pin mode for Pattern Switch
   pinMode(switch_pin, INPUT_PULLUP);
@@ -144,7 +144,7 @@ void loop()
     {
       microseconds = micros();    //Overflows after around 70 minutes!
        
-      vReal[i] = analogRead(5);
+      vReal[i] = analogRead(5);//+analogRead(6);
       vImag[i] = 0.0;
     
       while(micros() < (microseconds + sampling_period_us)){
@@ -192,12 +192,10 @@ void loop()
       switch_trigger=0;      
   }
 
-  /*
   EVERY_N_MILLISECONDS(100){ 
     BRIGHTNESS=analogRead(brightnessPoti)/8;
     FastLED.setBrightness(int(BRIGHTNESS));
     }
-  */
   
   //debug
   //Serial.print(gCurrentPatternNumber);
