@@ -21,6 +21,8 @@ FASTLED_USING_NAMESPACE
 #define NUM_SAMPLES 128 // muss power of 2 sein
 #define NUM_FFT_BINS NUM_LEDS_PER_STRIP
 
+#define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
+
 
 // globale Variablen Definitionen
 
@@ -81,7 +83,8 @@ void setup() {
 
 typedef void (*PatternList[])();
 
-PatternList patterns = {test_pattern};
+PatternList patterns = {FFTpattern_OceanColors,FFTpattern_LavaColors,FFTpattern_ForestColors,
+                        FFTpattern_CloudColors,FFTpattern_RainbowColors,FFTpattern_PartyColors};
 
 // hier kommt das tatsaechliche Programm
 void loop() {
@@ -118,6 +121,11 @@ void loop() {
     FastLED.show();
   }
 
+  EVERY_N_MILLISECONDS( 1000 ) {
+    if (switch_trigger == 1)
+      nextPattern(); 
+      switch_trigger=0;      
+  }
   // debug
   //Serial.print(curr_pattern_number);
   //Serial.println();
@@ -138,13 +146,20 @@ double interpolation(double f) {
   return (vReal[int(f)+1] - vReal[int(f)]) * (f - int(f)) + vReal[int(f)];
 }
 
+void nextPattern()
+{
+  // add one to the current pattern number, and wrap around at the end
+  curr_pattern_number = (curr_pattern_number + 1) % ARRAY_SIZE( patterns);
+}
 
-// pattern funktionen, nur test erstmal!!
 
-void test_pattern() {
+// -------------- FFT-Patterns
+
+//FFT Base
+void FFTpattern_Palette(CRGBPalette16 currentPalette) {
 
   for(int i=0; i<NUM_LEDS_PER_STRIP; i++) {
-    leds[0][i] = ColorFromPalette(OceanColors_p, min(FFT_bins[i],128), min(FFT_bins[i],255));
+    leds[0][i] = ColorFromPalette(currentPalette, min(FFT_bins[i],128), min(FFT_bins[i],255));
   }
 
   for(int i=1; i<NUM_STRIPS; i++) {
@@ -152,4 +167,34 @@ void test_pattern() {
   }
 
   FastLED.setBrightness(int(brightness));
+}
+
+void FFTpattern_OceanColors()
+{
+  FFTpattern_Palette(OceanColors_p);
+}
+
+void FFTpattern_LavaColors()
+{
+  FFTpattern_Palette(LavaColors_p);
+}
+
+void FFTpattern_ForestColors()
+{
+  FFTpattern_Palette(ForestColors_p);
+}
+
+void FFTpattern_CloudColors()
+{
+  FFTpattern_Palette(CloudColors_p);
+}
+
+void FFTpattern_RainbowColors()
+{
+  FFTpattern_Palette(RainbowColors_p);
+}
+
+void FFTpattern_PartyColors()
+{
+  FFTpattern_Palette(PartyColors_p);
 }
