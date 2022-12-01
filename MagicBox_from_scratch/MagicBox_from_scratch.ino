@@ -13,6 +13,7 @@ FASTLED_USING_NAMESPACE
 #define SWITCH_PIN 18
 #define AUDIO_PIN1 5
 #define AUDIO_PIN2 6
+#define BRIGHTNESS_POTI A4 // brightness poti is connected to analog pin 4
 
 #define NUM_STRIPS 4
 #define NUM_LEDS_PER_STRIP 65
@@ -126,6 +127,11 @@ void loop() {
       nextPattern(); 
       switch_trigger=0;      
   }
+
+  EVERY_N_MILLISECONDS(100){ 
+    brightness=analogRead(BRIGHTNESS_POTI)/8;
+    FastLED.setBrightness(int(brightness));
+    }
   // debug
   //Serial.print(curr_pattern_number);
   //Serial.println();

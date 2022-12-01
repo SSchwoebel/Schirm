@@ -10,7 +10,7 @@ FASTLED_USING_NAMESPACE
 // auch yannic gruesst die Welt
 
 //#define AUFTRITT
-#define DATA_PINS_START    4
+#define DATA_PINS_START    5
 #define NUM_STRIPS 8
 #ifdef AUFTRITT
 #define NUM_LEDS_PER_STRIP 30
@@ -38,8 +38,8 @@ uint8_t blink_rate;
 uint8_t rotation_rate;
 uint8_t BRIGHTNESS;
 
-const int knock_interrupt_pin=2; 
-const int switch_interrupt_pin=3;
+const int knock_interrupt_pin=3; 
+const int switch_interrupt_pin=2;
 //const int knockDigital=13; 
 const int brightnessPoti = A0; // brightness poti is connected to analog pin 0
 
@@ -95,13 +95,39 @@ void setup() {
 // List of patterns to cycle through.  Each is defined as a separate function below.
 typedef void (*SimplePatternList[])();
 
-SimplePatternList gPatterns = {RainbowColors_fade, RainbowStripeColors_fade, OceanColors_fade, LavaColors_fade, ForestColors_fade, //White_fade,
-RainbowColors_bars_fast, OceanColors_bars_fast, ForestColors_bars_fast,
-RainbowColors_bars_slow, OceanColors_bars_slow, ForestColors_bars_slow,
-//RainbowColors_react, White_react,
-RainbowColors_withGlitter_react, RainbowStripeColors_withGlitter_react, OceanColors_withGlitter_react, LavaColors_withGlitter_react, ForestColors_withGlitter_react,
-rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm, goaround, rainbow2, rainbowWithGlitter2, confetti2, sinelon2, juggle2, bpm2 };
-int n_patterns = 16;
+SimplePatternList gPatterns = {RainbowColors_fade,
+RainbowStripeColors_fade, 
+OceanColors_fade, 
+LavaColors_fade, 
+ForestColors_fade, 
+White_fade,
+RainbowColors_bars_fast, 
+OceanColors_bars_fast, 
+ForestColors_bars_fast,
+RainbowColors_bars_slow, 
+OceanColors_bars_slow, 
+ForestColors_bars_slow,
+RainbowColors_react, 
+White_react,
+RainbowColors_withGlitter_react, 
+RainbowStripeColors_withGlitter_react, 
+OceanColors_withGlitter_react, 
+LavaColors_withGlitter_react, 
+ForestColors_withGlitter_react,
+rainbow, 
+rainbowWithGlitter, 
+confetti, 
+sinelon, 
+juggle, 
+bpm, 
+goaround, 
+rainbow2, 
+rainbowWithGlitter2, 
+confetti2, 
+sinelon2, 
+juggle2, 
+bpm2 };
+int n_patterns = 32;
 //SimplePatternList gPatterns = {RainbowColors_fade, RainbowStripeColors_fade, OceanColors_fade, LavaColors_fade, ForestColors_fade, White_fade,
 //RainbowColors_bars_fast, OceanColors_bars_fast, LavaColors_bars_fast, ForestColors_bars_fast,
 //RainbowColors_bars_slow, OceanColors_bars_slow, LavaColors_bars_slow, ForestColors_bars_slow,
@@ -139,7 +165,7 @@ void loop()
 
   // do some periodic updates
   EVERY_N_MILLISECONDS( 20 ) { gHue++; } // slowly cycle the "base color" through the rainbow
-  EVERY_N_SECONDS( 30 ) { nextPattern_random(); } // change patterns periodically
+  //EVERY_N_SECONDS( 30 ) { nextPattern_random(); } // change patterns periodically
   nextPatternSwitch();
   
   
