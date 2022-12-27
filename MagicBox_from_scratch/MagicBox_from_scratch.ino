@@ -84,7 +84,7 @@ void setup() {
 
 typedef void (*PatternList[])();
 
-PatternList patterns = {FFTpattern_OceanColors,FFTpattern_LavaColors,FFTpattern_ForestColors,
+PatternList patterns = {FFTpattern_ChoiceColor,FFTpattern_Heat,FFTpattern_ColorWhite,FFTpattern_HeatColors, FFTpattern_OceanColors,FFTpattern_LavaColors,FFTpattern_ForestColors,
                         FFTpattern_CloudColors,FFTpattern_RainbowColors,FFTpattern_PartyColors};
 
 // hier kommt das tatsaechliche Programm
@@ -175,6 +175,7 @@ void FFTpattern_Palette(CRGBPalette16 currentPalette) {
   FastLED.setBrightness(int(brightness));
 }
 
+
 void FFTpattern_OceanColors()
 {
   FFTpattern_Palette(OceanColors_p);
@@ -203,4 +204,71 @@ void FFTpattern_RainbowColors()
 void FFTpattern_PartyColors()
 {
   FFTpattern_Palette(PartyColors_p);
+}
+
+void FFTpattern_HeatColors()
+{
+  FFTpattern_Palette(HeatColors_p);
+}
+
+// -------------- FFT-Patterns One Color
+
+//Base
+void FFTpattern_Color(int hue, int saturation) {
+
+  for(int i=0; i<NUM_LEDS_PER_STRIP; i++) {
+    leds[0][i] = CHSV(hue, saturation, min(FFT_bins[i],255));
+  }
+
+  for(int i=1; i<NUM_STRIPS; i++) {
+    memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP * sizeof(CRGB));
+  }
+
+  FastLED.setBrightness(int(brightness));
+}
+
+void FFTpattern_ColorWhite()
+{
+  FFTpattern_Color(0,0);
+}
+
+void FFTpattern_ColorOrange()
+{
+  FFTpattern_Color(32,255);
+}
+
+void FFTpattern_ColorYellow()
+{
+  FFTpattern_Color(64,255);
+}
+
+
+// -------------- FFT-Patterns Heat
+
+void FFTpattern_Heat() {
+
+  for(int i=0; i<NUM_LEDS_PER_STRIP; i++) {
+    leds[0][i] = HeatColor( min(FFT_bins[i],255));
+  }
+
+  for(int i=1; i<NUM_STRIPS; i++) {
+    memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP * sizeof(CRGB));
+  }
+
+  FastLED.setBrightness(int(brightness));
+}
+
+// -------------- FFT-Patterns ChoiceColor
+
+void FFTpattern_ChoiceColor() {
+
+  for(int i=0; i<NUM_LEDS_PER_STRIP; i++) {
+    leds[0][i] = CHSV(int(brightness), 255, min(FFT_bins[i],255));;
+  }
+
+  for(int i=1; i<NUM_STRIPS; i++) {
+    memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP * sizeof(CRGB));
+  }
+
+  FastLED.setBrightness(255);
 }
