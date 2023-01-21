@@ -13,6 +13,7 @@ FASTLED_USING_NAMESPACE
 #define SWITCH_PIN 18
 #define AUDIO_PIN1 5
 #define AUDIO_PIN2 6
+#define MIC_PIN 3
 #define BRIGHTNESS_POTI A4 // brightness poti is connected to analog pin 4
 
 #define NUM_STRIPS 4
@@ -85,8 +86,7 @@ void setup() {
 
 typedef void (*PatternList[])();
 
-PatternList patterns = {SigSum_pattern_ChoiceColor,FFTpattern_ChoiceColor,FFTpattern_Heat,FFTpattern_ColorWhite,FFTpattern_HeatColors, FFTpattern_OceanColors,FFTpattern_LavaColors,FFTpattern_ForestColors,
-                        FFTpattern_CloudColors,FFTpattern_RainbowColors,FFTpattern_PartyColors};
+PatternList patterns = {Bar_pattern_ChoiceColor,BarInverse_pattern_ChoiceColor,Breathing_pattern_ChoiceColor,FFTpattern_ChoiceColor,FFTpattern_Heat,FFTpattern_ColorWhite,FFTpattern_HeatColors, FFTpattern_OceanColors,FFTpattern_LavaColors,FFTpattern_ForestColors, FFTpattern_CloudColors,FFTpattern_RainbowColors,FFTpattern_PartyColors};
 
 // hier kommt das tatsaechliche Programm
 void loop() {
@@ -98,7 +98,7 @@ void loop() {
     
     microseconds = micros();
 
-    vReal[i] = analogRead(AUDIO_PIN1);
+    vReal[i] = 0.5*(analogRead(AUDIO_PIN1)+analogRead(AUDIO_PIN2));
     vImag[i] = 0;
     signalsumme+=vReal[i];
 
@@ -108,18 +108,7 @@ void loop() {
 
   signalsumme=signalsumme/NUM_SAMPLES;
 
-  // FFT
-
-  FFT.Windowing(vReal, NUM_SAMPLES, FFT_WIN_TYP_HANN, FFT_FORWARD);
-  FFT.Compute(vReal, vImag, NUM_SAMPLES, FFT_FORWARD);
-  FFT.ComplexToMagnitude(vReal, vImag, NUM_SAMPLES);
-
-  // Berechnung FFT Bins
-
-  for(int i=0; i<NUM_FFT_BINS; i++) {
-    FFT_bins[i] = int(interpolation(FFT_bins_freqs[i]));
-  }
-
+  
   patterns[curr_pattern_number]();
 
   // alle 10ms zeichnen wir die LEDs neu!
@@ -163,18 +152,67 @@ void nextPattern()
   curr_pattern_number = (curr_pattern_number + 1) % ARRAY_SIZE( patterns);
 }
 
+void calculateFFT()
+{
+    // FFT
+    FFT.Windowing(vReal, NUM_SAMPLES, FFT_WIN_TYP_HANN, FFT_FORWARD);
+    FFT.Compute(vReal, vImag, NUM_SAMPLES, FFT_FORWARD);
+    FFT.ComplexToMagnitude(vReal, vImag, NUM_SAMPLES);
+
+  // Berechnung FFT Bins
+
+    for(int i=0; i<NUM_FFT_BINS; i++) {
+      FFT_bins[i] = int(interpolation(FFT_bins_freqs[i]));
+    }
+}
 
 //---------------Signalsummenpatterns
 
-void SigSum_pattern_ChoiceColor() {
+void Bar_pattern_ChoiceColor() {
   double scaling=25;
+  double limit= float(NUM_LEDS_PER_STRIP)/scaling*signalsumme;
   for(int i=0; i<NUM_LEDS_PER_STRIP; i++) {
-    if (i<float(NUM_LEDS_PER_STRIP)/scaling*signalsumme){
-      leds[0][i] = CHSV(int(brightness), 255, min(FFT_bins[i],255));
+    if (i<limit){
+      
+      leds[0][i] = CHSV(int(brightness),float(i)/limit* 255,float(i+1)/limit*254);
     }
     else {
       leds[0][i] = CRGB(0,0,0);
     }
+  }
+
+  for(int i=1; i<NUM_STRIPS; i++) {
+    memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP * sizeof(CRGB));
+  }
+  FastLED.setBrightness(255);
+}
+
+void BarInverse_pattern_ChoiceColor() {
+  double scaling=25;
+  double limit= float(NUM_LEDS_PER_STRIP)/scaling*signalsumme;
+  int value=0;
+  for(int i=NUM_LEDS_PER_STRIP-1; i>=0; i--) {
+    value=NUM_LEDS_PER_STRIP-i;
+    if (value<limit){
+      leds[0][i] = CHSV(int(brightness),float(value)/limit* 255,float(value+1)/limit*254);
+    }
+    else {
+      leds[0][i] = CRGB(0,0,0);
+    }
+  }
+
+  for(int i=1; i<NUM_STRIPS; i++) {
+    memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP * sizeof(CRGB));
+  }
+
+
+  FastLED.setBrightness(255);
+}
+
+void Breathing_pattern_ChoiceColor() {
+  double value = 10*signalsumme;
+  for(int i=0; i<NUM_LEDS_PER_STRIP; i++) {
+    leds[0][i] = CHSV(int(brightness),2*value,value);
   }
 
   for(int i=1; i<NUM_STRIPS; i++) {
@@ -187,7 +225,7 @@ void SigSum_pattern_ChoiceColor() {
 
 //FFT Base
 void FFTpattern_Palette(CRGBPalette16 currentPalette) {
-
+   calculateFFT();
   for(int i=0; i<NUM_LEDS_PER_STRIP; i++) {
     leds[0][i] = ColorFromPalette(currentPalette, min(FFT_bins[i],128), min(FFT_bins[i],255));
   }
@@ -239,7 +277,7 @@ void FFTpattern_HeatColors()
 
 //Base
 void FFTpattern_Color(int hue, int saturation) {
-
+  calculateFFT();
   for(int i=0; i<NUM_LEDS_PER_STRIP; i++) {
     leds[0][i] = CHSV(hue, saturation, min(FFT_bins[i],255));
   }
@@ -270,7 +308,7 @@ void FFTpattern_ColorYellow()
 // -------------- FFT-Patterns Heat
 
 void FFTpattern_Heat() {
-
+  calculateFFT();
   for(int i=0; i<NUM_LEDS_PER_STRIP; i++) {
     leds[0][i] = HeatColor( min(FFT_bins[i],255));
   }
@@ -285,7 +323,7 @@ void FFTpattern_Heat() {
 // -------------- FFT-Patterns ChoiceColor
 
 void FFTpattern_ChoiceColor() {
-
+  calculateFFT();
   for(int i=0; i<NUM_LEDS_PER_STRIP; i++) {
     leds[0][i] = CHSV(int(brightness), 255, min(FFT_bins[i],255));;
   }
