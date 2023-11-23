@@ -9,6 +9,8 @@ FASTLED_USING_NAMESPACE
 
 // defines fuer globale Variablen, vor allem Parameter kommen hier hin
 
+#define BRIGHTNESS_SUMPATTERNS 100
+#define SUMPATTERNSGAIN 0.2
 #define DATA_PINS_START 22
 #define SWITCH_PIN 18
 #define AUDIO_PIN1 5
@@ -170,7 +172,7 @@ void calculateFFT()
 
 void Bar_pattern_ChoiceColor() {
   double scaling=25;
-  double limit= float(NUM_LEDS_PER_STRIP)/scaling*signalsumme;
+  double limit= float(NUM_LEDS_PER_STRIP)/scaling*signalsumme*SUMPATTERNSGAIN;
   for(int i=0; i<NUM_LEDS_PER_STRIP; i++) {
     if (i<limit){
       
@@ -184,12 +186,12 @@ void Bar_pattern_ChoiceColor() {
   for(int i=1; i<NUM_STRIPS; i++) {
     memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP * sizeof(CRGB));
   }
-  FastLED.setBrightness(255);
+  FastLED.setBrightness(BRIGHTNESS_SUMPATTERNS);
 }
 
 void BarInverse_pattern_ChoiceColor() {
   double scaling=25;
-  double limit= float(NUM_LEDS_PER_STRIP)/scaling*signalsumme;
+  double limit= float(NUM_LEDS_PER_STRIP)/scaling*signalsumme*SUMPATTERNSGAIN;
   int value=0;
   for(int i=NUM_LEDS_PER_STRIP-1; i>=0; i--) {
     value=NUM_LEDS_PER_STRIP-i;
@@ -206,11 +208,11 @@ void BarInverse_pattern_ChoiceColor() {
   }
 
 
-  FastLED.setBrightness(255);
+  FastLED.setBrightness(BRIGHTNESS_SUMPATTERNS);
 }
 
 void Breathing_pattern_ChoiceColor() {
-  double value = 10*signalsumme;
+  double value = 10*signalsumme*SUMPATTERNSGAIN;
   for(int i=0; i<NUM_LEDS_PER_STRIP; i++) {
     leds[0][i] = CHSV(int(brightness),2*value,value);
   }
@@ -219,7 +221,7 @@ void Breathing_pattern_ChoiceColor() {
     memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP * sizeof(CRGB));
   }
 
-  FastLED.setBrightness(255);
+  FastLED.setBrightness(BRIGHTNESS_SUMPATTERNS);
 }
 // -------------- FFT-Patterns
 
@@ -332,5 +334,5 @@ void FFTpattern_ChoiceColor() {
     memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP * sizeof(CRGB));
   }
 
-  FastLED.setBrightness(255);
+  FastLED.setBrightness(BRIGHTNESS_SUMPATTERNS);
 }
