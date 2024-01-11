@@ -18,26 +18,21 @@ const int frames_per_second = 100;     //Haeufigkeit mit der LED-Streifen aufgef
 const int switch_interrupt_pin=2; 
 const int LED_stripe_pin=27; //23-29, 31-37, nur ungerade Zahlen, Teststreifen ist auf dem 3. Pin.
 //const int poti_1_pin = A0;
-//const int poti_1_pin = A1;
+const int poti_1_pin = A1;
 
 // globale Variablen
 CRGB leds[leds_per_strip];   //Speicherbereich, der die Farbwerte der LEDs im Leuchtstreifen haelt
 
 int gHue = 0; // rotierende Basisfarbe, die von den Rainbow-Leuchtmustern verwendet wird
-
-
+int pattern_num = 1;
+int brightness_analog = 120;
 
 void setup() {
   delay(3000); // Wartezeit zur Erholung
-
-  /*
-  //setze Output Pin fuer einzelne LED
-  pinMode(LED_pin,OUTPUT);
   
   //setze Interrupt Pin fuer Schalter und verbinde mit Trigger Routine
   pinMode(switch_interrupt_pin,INPUT_PULLUP);
   attachInterrupt(switch_interrupt_pin-2,setSwitchTrigger,LOW); 
-  */
 
   // teile FastLED die LED-Streifen-Konfiguration mit
   FastLED.addLeds<WS2812B,LED_stripe_pin,GRB>(leds,leds_per_strip);
@@ -49,7 +44,19 @@ void setup() {
 void loop()
 {
   // Rufe die Muster-Funktion einmal auf um das 'leds' Array upzudaten
-  RainbowColors();
+  if(pattern_num==1)
+  {
+    RainbowColors();
+  }
+  else
+  {
+    SolidColors();
+  }
+
+  brightness_analog = analogRead(poti_1_pin);
+
+  // setze Helligkeit
+  FastLED.setBrightness(brightness_analog);
 
   // schicke das 'leds' Array heraus an den eigentlichen LED strip
   // aber nur alle 1000/frames_per_second Millisekunden um die Framerate und die Zeit fuer die Ausgabe moderat zu halten
@@ -62,19 +69,27 @@ void loop()
 //-------------------------------------------------------------------------------------------------------------------
 //--- Trigger-Behandlungs-Routinen
 
-/*
 void setSwitchTrigger()
 {
-  digitalWrite(LED_pin,HIGH);
-  delay(100);
-  digitalWrite(LED_pin,LOW);
+  if(pattern_num==1)
+  {
+    pattern_num = 2;
+  }
+  else
+  {
+    pattern_num = 1;
+  }
 }
-*/
 
 //-------------------------------------------------------------------------------------------------------------------
 //--- Leuchtmusterfunktionen
 
 void RainbowColors() 
 {
-  fill_rainbow( leds,leds_per_strip, gHue, delta_hue);
+  fill_rainbow(leds,leds_per_strip, gHue, delta_hue);
+}
+
+void SolidColors()
+{
+  fill_solid(leds,leds_per_strip, CRGB::Green);
 }
