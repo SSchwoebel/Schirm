@@ -6,20 +6,33 @@
 
 FASTLED_USING_NAMESPACE
 
+//#define Yannic
+#define Drizzt
 
 // defines fuer globale Variablen, vor allem Parameter kommen hier hin
 
 #define BRIGHTNESS_SUMPATTERNS 100
-#define SUMPATTERNSGAIN 0.2
+#define SUMPATTERNSGAIN 2.0
+
+#ifdef Yannic
 #define DATA_PINS_START 22
 #define SWITCH_PIN 18
 #define AUDIO_PIN1 5
 #define AUDIO_PIN2 6
 #define MIC_PIN 3
 #define BRIGHTNESS_POTI A4 // brightness poti is connected to analog pin 4
+#endif
 
-#define NUM_STRIPS 4
-#define NUM_LEDS_PER_STRIP 65
+#ifdef Drizzt
+#define DATA_PINS_START 27 //23-29
+#define SWITCH_PIN 2
+#define AUDIO_PIN1 A4
+#define AUDIO_PIN2 A5
+#define BRIGHTNESS_POTI A0 // brightness poti is connected to analog pin 4
+#endif
+
+#define NUM_STRIPS 1
+#define NUM_LEDS_PER_STRIP 44
 #define BRIGHTNESS_START 100;
 #define SAMPLING_FREQUENCY 10000; // in Hz, muss kleiner gleich 10000 wegen ADC
 #define NUM_SAMPLES 128 // muss power of 2 sein
