@@ -10,18 +10,20 @@ FASTLED_USING_NAMESPACE
 // defines fuer globale Variablen, vor allem Parameter kommen hier hin
 
 #define BRIGHTNESS_SUMPATTERNS 255
-#define SUMPATTERNSGAIN 0.3
+#define SUMPATTERNSGAIN_FACTOR 0.00001
 #define DATA_PINS_START 22
 #define SWITCH_PIN 18
 #define AUDIO_PIN1 5
 #define AUDIO_PIN2 6
 #define MIC_PIN 3
+#define ANALOG_AUDIO MIC_PIN
 #define BRIGHTNESS_POTI A4 // brightness poti is connected to analog pin 4
+#define GAIN_POTI A7 // gain poti is connected to analog pin 7
 
-#define NUM_STRIPS 4
-#define NUM_LEDS_PER_STRIP 65
+#define NUM_STRIPS 1
+#define NUM_LEDS_PER_STRIP 44
 #define BRIGHTNESS_START 100;
-#define SAMPLING_FREQUENCY 10000; // in Hz, muss kleiner gleich 10000 wegen ADC
+#define SAMPLING_FREQUENCY 5000; // in Hz, muss kleiner gleich 10000 wegen ADC
 #define NUM_SAMPLES 128 // muss power of 2 sein
 #define NUM_FFT_BINS NUM_LEDS_PER_STRIP
 
@@ -34,13 +36,15 @@ CRGB leds[NUM_STRIPS][NUM_LEDS_PER_STRIP];
 
 double vReal[NUM_SAMPLES];
 double vImag[NUM_SAMPLES];
-double signalsumme;
+int peak_to_peak;
 
 int FFT_bins[NUM_FFT_BINS];
 int FFT_bins_freqs[NUM_FFT_BINS];
 
 uint8_t brightness = BRIGHTNESS_START;
 uint8_t curr_pattern_number = 0;
+double gain = 1.0;
+
 
 volatile uint8_t switch_trigger = 0;
 
@@ -57,9 +61,13 @@ void setup() {
 
   // FastLED Pin Config
   FastLED.addLeds<WS2812B, DATA_PINS_START+0, GRB>(leds[0], NUM_LEDS_PER_STRIP); //BRG
-  FastLED.addLeds<WS2812B, DATA_PINS_START+2, GRB>(leds[1], NUM_LEDS_PER_STRIP);
-  FastLED.addLeds<WS2812B, DATA_PINS_START+4, GRB>(leds[2], NUM_LEDS_PER_STRIP);
-  FastLED.addLeds<WS2812B, DATA_PINS_START+6, GRB>(leds[3], NUM_LEDS_PER_STRIP);
+  FastLED.addLeds<WS2812B, DATA_PINS_START+2, GRB>(leds[0], NUM_LEDS_PER_STRIP);
+  FastLED.addLeds<WS2812B, DATA_PINS_START+4, GRB>(leds[0], NUM_LEDS_PER_STRIP);
+  FastLED.addLeds<WS2812B, DATA_PINS_START+6, GRB>(leds[0], NUM_LEDS_PER_STRIP);
+  FastLED.addLeds<WS2812B, DATA_PINS_START+8, GRB>(leds[0], NUM_LEDS_PER_STRIP);
+  FastLED.addLeds<WS2812B, DATA_PINS_START+10, GRB>(leds[0], NUM_LEDS_PER_STRIP);
+  FastLED.addLeds<WS2812B, DATA_PINS_START+12, GRB>(leds[0], NUM_LEDS_PER_STRIP);
+  FastLED.addLeds<WS2812B, DATA_PINS_START+14, GRB>(leds[0], NUM_LEDS_PER_STRIP);
 
   FastLED.setBrightness(brightness);
 
@@ -94,29 +102,49 @@ PatternList patterns = {Bar_pattern_ChoiceColor,BarInverse_pattern_ChoiceColor,B
 void loop() {
 
   // sampling
-  signalsumme = 0;
+  peak_to_peak = 0;
+  int minimum=1024;
+  int maximum=0;
+  int value;
   unsigned long int microseconds;
   for(int i=0; i<NUM_SAMPLES; i++) {
     
     microseconds = micros();
 
-    vReal[i] = 0.5*(analogRead(AUDIO_PIN1)+analogRead(AUDIO_PIN2));
+    value = analogRead(ANALOG_AUDIO);
+    if (value> maximum) {
+      maximum=value;
+    }
+    else if (value<minimum) {
+      minimum = value;
+    }
+    vReal[i] = (float)value;
     vImag[i] = 0;
-    signalsumme+=vReal[i];
 
     while(micros() < (microseconds + sampling_period_us)) {}
-    
+
   }
-
-  signalsumme=signalsumme/NUM_SAMPLES;
-
+  /*
+  microseconds = micros();
   
-  patterns[curr_pattern_number]();
-
-  // alle 10ms zeichnen wir die LEDs neu!
-  EVERY_N_MILLISECONDS(10) {
-    FastLED.show();
+  while (micros()-microseconds< 50000)
+  {
+    value = analogRead(ANALOG_AUDIO);
+    if (value> maximum) {
+      maximum=value;
+    }
+    else if (value<minimum) {
+      minimum = value;
+    }
   }
+  */
+
+  peak_to_peak= maximum-minimum;
+ 
+
+  patterns[curr_pattern_number]();
+  FastLED.show();
+ 
 
   EVERY_N_MILLISECONDS( 1000 ) {
     if (switch_trigger == 1)
@@ -125,6 +153,7 @@ void loop() {
   }
 
   EVERY_N_MILLISECONDS(100){ 
+    gain = analogRead(GAIN_POTI)*SUMPATTERNSGAIN_FACTOR;
     brightness=analogRead(BRIGHTNESS_POTI)/8;
     FastLED.setBrightness(int(brightness));
     }
@@ -168,11 +197,10 @@ void calculateFFT()
     }
 }
 
-//---------------Signalsummenpatterns
+//---------------Lautstaerkenpatterns
 
 void Bar_pattern_ChoiceColor() {
-  double scaling=25;
-  double limit= float(NUM_LEDS_PER_STRIP)/scaling*signalsumme*SUMPATTERNSGAIN;
+  double limit= float(NUM_LEDS_PER_STRIP)*peak_to_peak*gain;
   for(int i=0; i<NUM_LEDS_PER_STRIP; i++) {
     if (i<limit){
       
@@ -191,7 +219,7 @@ void Bar_pattern_ChoiceColor() {
 
 void BarInverse_pattern_ChoiceColor() {
   double scaling=25;
-  double limit= float(NUM_LEDS_PER_STRIP)/scaling*signalsumme*SUMPATTERNSGAIN;
+  double limit= float(NUM_LEDS_PER_STRIP)*peak_to_peak*gain;
   int value=0;
   for(int i=NUM_LEDS_PER_STRIP-1; i>=0; i--) {
     value=NUM_LEDS_PER_STRIP-i;
@@ -212,7 +240,7 @@ void BarInverse_pattern_ChoiceColor() {
 }
 
 void Breathing_pattern_ChoiceColor() {
-  double value = 10*signalsumme*SUMPATTERNSGAIN;
+  double value = 100*peak_to_peak*gain;
   for(int i=0; i<NUM_LEDS_PER_STRIP; i++) {
     leds[0][i] = CHSV(int(brightness),2*value,value);
   }
