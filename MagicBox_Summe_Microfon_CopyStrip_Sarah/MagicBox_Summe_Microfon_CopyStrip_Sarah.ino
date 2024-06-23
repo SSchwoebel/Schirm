@@ -103,7 +103,11 @@ void setup() {
 
 typedef void (*PatternList[])();
 
-PatternList patterns = {RainbowColors_minusSpeed, RainbowColors_withGlitter_react,RainbowColors_speed,ForestColors_withGlitter_react,Bar_pattern_ChoiceColor,BarInverse_pattern_ChoiceColor,Breathing_pattern_ChoiceColor,FFTpattern_ChoiceColor,FFTpattern_Heat,FFTpattern_ColorWhite,FFTpattern_HeatColors, FFTpattern_OceanColors,FFTpattern_LavaColors,FFTpattern_ForestColors, FFTpattern_CloudColors,FFTpattern_RainbowColors,FFTpattern_PartyColors};
+PatternList patterns = {OceanColors_speed,LavaColors_speed,ForestColors_speed, CloudColors_speed,RainbowColors_speed,PartyColors_speed,
+                        OceanColors_withGlitter_react,LavaColors_withGlitter_react,ForestColors_withGlitter_react, CloudColors_withGlitter_react,RainbowColors_withGlitter_react,PartyColors_withGlitter_react,
+                        OceanColors_minusSpeed,LavaColors_minusSpeed,ForestColors_minusSpeed, CloudColors_minusSpeed,RainbowColors_minusSpeed,PartyColors_minusSpeed,
+                        Bar_pattern_ChoiceColor,BarInverse_pattern_ChoiceColor,Breathing_pattern_ChoiceColor,FFTpattern_ChoiceColor,
+                        FFTpattern_HeatColors, FFTpattern_OceanColors,FFTpattern_LavaColors,FFTpattern_ForestColors, FFTpattern_CloudColors,FFTpattern_RainbowColors,FFTpattern_PartyColors};
 
 // hier kommt das tatsaechliche Programm
 void loop() {
@@ -159,6 +163,10 @@ void loop() {
       switch_trigger=0;      
   }
 
+  EVERY_N_SECONDS( 10 ) {
+     randomPattern();      
+  }
+
   EVERY_N_MILLISECONDS(100){ 
     gain = analogRead(GAIN_POTI)*SUMPATTERNSGAIN_FACTOR;
     brightness=analogRead(BRIGHTNESS_POTI)/8;
@@ -178,7 +186,6 @@ void loop() {
 
 void setSwitchTrigger() {
   switch_trigger = 1;
-  delta_gHue = GHUE_BASE_SPEED;
 }
 
 
@@ -191,7 +198,15 @@ double interpolation(double f) {
 void nextPattern()
 {
   // add one to the current pattern number, and wrap around at the end
+  delta_gHue = GHUE_BASE_SPEED;
   curr_pattern_number = (curr_pattern_number + 1) % ARRAY_SIZE( patterns);
+}
+
+void randomPattern()
+{
+  // add one to the current pattern number, and wrap around at the end
+  delta_gHue = GHUE_BASE_SPEED;
+  curr_pattern_number = random16(ARRAY_SIZE( patterns));
 }
 
 void calculateFFT()
