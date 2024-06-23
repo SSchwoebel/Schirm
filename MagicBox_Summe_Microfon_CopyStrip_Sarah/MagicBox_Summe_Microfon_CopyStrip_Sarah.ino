@@ -31,6 +31,8 @@ FASTLED_USING_NAMESPACE
 
 #define GLITTER_N NUM_LEDS_PER_STRIP
 
+#define GHUE_BASE_SPEED 1
+
 
 // globale Variablen Definitionen
 
@@ -53,6 +55,7 @@ volatile uint8_t switch_trigger = 0;
 const unsigned int sampling_period_us = 1000000 / SAMPLING_FREQUENCY;
 
 int gHue = 0;
+int delta_gHue = GHUE_BASE_SPEED;
 const int delta_hue = 7;   
 
 // Initialize Arduino FFT as volatile, muss vor setup passieren
@@ -100,7 +103,7 @@ void setup() {
 
 typedef void (*PatternList[])();
 
-PatternList patterns = {RainbowColors_withGlitter_react,ForestColors_withGlitter_react,Bar_pattern_ChoiceColor,BarInverse_pattern_ChoiceColor,Breathing_pattern_ChoiceColor,FFTpattern_ChoiceColor,FFTpattern_Heat,FFTpattern_ColorWhite,FFTpattern_HeatColors, FFTpattern_OceanColors,FFTpattern_LavaColors,FFTpattern_ForestColors, FFTpattern_CloudColors,FFTpattern_RainbowColors,FFTpattern_PartyColors};
+PatternList patterns = {RainbowColors_minusSpeed, RainbowColors_withGlitter_react,RainbowColors_speed,ForestColors_withGlitter_react,Bar_pattern_ChoiceColor,BarInverse_pattern_ChoiceColor,Breathing_pattern_ChoiceColor,FFTpattern_ChoiceColor,FFTpattern_Heat,FFTpattern_ColorWhite,FFTpattern_HeatColors, FFTpattern_OceanColors,FFTpattern_LavaColors,FFTpattern_ForestColors, FFTpattern_CloudColors,FFTpattern_RainbowColors,FFTpattern_PartyColors};
 
 // hier kommt das tatsaechliche Programm
 void loop() {
@@ -166,7 +169,7 @@ void loop() {
   //Serial.println();
 
   // wechsle langsam die Basisfarbe durch den Regenbogen
-  EVERY_N_MILLISECONDS( 20 ) { gHue++; } // slowly cycle the "base color" through the rainbow
+  EVERY_N_MILLISECONDS( 20 ) { gHue=gHue+delta_gHue; } // slowly cycle the "base color" through the rainbow
 
 }
 
@@ -175,6 +178,7 @@ void loop() {
 
 void setSwitchTrigger() {
   switch_trigger = 1;
+  delta_gHue = GHUE_BASE_SPEED;
 }
 
 
@@ -397,7 +401,7 @@ void addGlitter( fract8 chanceOfGlitter, int n)
 {
   if( random8() < chanceOfGlitter) {
     for(int i=0; i<n; i++){
-      leds[0][ random16(NUM_STRIPS*NUM_LEDS_PER_STRIP) ] += CRGB::White;
+      leds[0][ random16(NUM_STRIPS*NUM_LEDS_PER_STRIP) ] = CRGB::White;
     }
   }
 }
@@ -410,18 +414,138 @@ void ParaPaletteColors(CRGBPalette16 palette)                                   
   }
 }
 
-void PaletteColors_withGlitter_react(CRGBPalette16 currentPalette)
+void PaletteColors_speed(CRGBPalette16 currentPalette)
 {
-  double limit= float(BRIGHTNESS_SUMPATTERNS)*peak_to_peak*gain;
+  //yeah die zahl ist ein guess und durch probieren entstanden...
+  if (peak_to_peak>2500*gain) 
+  {
+    delta_gHue = -5;
+  }
+  else
+  {
+    delta_gHue = 5;
+  }
+  //delta_gHue = int((peak_to_peak*gain-0.5)*5);
   
   ParaPaletteColors(currentPalette);                             //Arme mit Palettenfarben fuellen
-  
-  addGlitter(100*peak_to_peak*gain, GLITTER_N);
+
+  //delta_hue = DELTA_HUE_BASE;
   
   for(int i=1; i<NUM_STRIPS; i++) {
     memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP * sizeof(CRGB));
   }
-  FastLED.setBrightness(limit);
+  FastLED.setBrightness(int(brightness));
+
+}
+
+void RainbowColors_speed() 
+{ 
+  PaletteColors_speed(RainbowColors_p) ;
+}
+
+void LavaColors_speed() 
+{ 
+  PaletteColors_speed(LavaColors_p) ;
+}
+
+void OceanColors_speed() 
+{ 
+  PaletteColors_speed(OceanColors_p) ;
+}
+
+void ForestColors_speed() 
+{ 
+  PaletteColors_speed(ForestColors_p) ;
+}
+
+void RainbowStripeColors_speed() 
+{ 
+  PaletteColors_speed(RainbowStripeColors_p) ;
+}
+
+void CloudColors_speed() 
+{ 
+  PaletteColors_speed(CloudColors_p) ;
+}
+
+void PartyColors_speed() 
+{ 
+  PaletteColors_speed(PartyColors_p) ;
+}
+
+void PaletteColors_minusSpeed(CRGBPalette16 currentPalette)
+{
+  //yeah die zahl ist ein guess und durch probieren entstanden...
+  if (peak_to_peak>2500*gain) 
+  {
+    delta_gHue = 5;
+  }
+  else
+  {
+    delta_gHue = -5;
+  }
+  //delta_gHue = int((peak_to_peak*gain-0.5)*5);
+  
+  ParaPaletteColors(currentPalette);                             //Arme mit Palettenfarben fuellen
+
+  //delta_hue = DELTA_HUE_BASE;
+  
+  for(int i=1; i<NUM_STRIPS; i++) {
+    memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP * sizeof(CRGB));
+  }
+  FastLED.setBrightness(int(brightness));
+
+}
+
+void RainbowColors_minusSpeed() 
+{ 
+  PaletteColors_minusSpeed(RainbowColors_p) ;
+}
+
+void LavaColors_minusSpeed() 
+{ 
+  PaletteColors_minusSpeed(LavaColors_p) ;
+}
+
+void OceanColors_minusSpeed() 
+{ 
+  PaletteColors_minusSpeed(OceanColors_p) ;
+}
+
+void ForestColors_minusSpeed() 
+{ 
+  PaletteColors_minusSpeed(ForestColors_p) ;
+}
+
+void RainbowStripeColors_minusSpeed() 
+{ 
+  PaletteColors_minusSpeed(RainbowStripeColors_p) ;
+}
+
+void CloudColors_minusSpeed() 
+{ 
+  PaletteColors_minusSpeed(CloudColors_p) ;
+}
+
+void PartyColors_minusSpeed() 
+{ 
+  PaletteColors_minusSpeed(PartyColors_p) ;
+}
+
+void PaletteColors_withGlitter_react(CRGBPalette16 currentPalette)
+{
+  
+  double limit= float(BRIGHTNESS_SUMPATTERNS)*peak_to_peak*gain;
+  
+  ParaPaletteColors(currentPalette);                             //Arme mit Palettenfarben fuellen
+
+  // Achtung: ich habe noch einen brightness factor fuer den anderen Poti hinzugefuegt, dann kann man nochmal die anzahl glitter unabhaengig vom gain aendern.
+  addGlitter(int(255*(float(brightness)/float(255))), int(float(NUM_LEDS_PER_STRIP)*peak_to_peak*gain));//GLITTER_N);gain*
+  
+  for(int i=1; i<NUM_STRIPS; i++) {
+    memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP * sizeof(CRGB));
+  }
+  FastLED.setBrightness(limit);//int(brightness));
 
 }
 
@@ -458,9 +582,4 @@ void CloudColors_withGlitter_react()
 void PartyColors_withGlitter_react() 
 { 
   PaletteColors_withGlitter_react(PartyColors_p) ;
-}
-
-void rainbowWithGlitter_react() 
-{
-  PaletteColors_withGlitter_react(RainbowColors_p) ;
 }
