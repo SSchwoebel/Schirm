@@ -9,7 +9,7 @@ FASTLED_USING_NAMESPACE
 
 // defines fuer globale Variablen, vor allem Parameter kommen hier hin
 
-#define BRIGHTNESS_SUMPATTERNS 255
+#define BRIGHTNESS_SUMPATTERNS 100
 #define SUMPATTERNSGAIN_FACTOR 0.00001
 #define DATA_PINS_START 22
 #define SWITCH_PIN 18
@@ -23,8 +23,8 @@ FASTLED_USING_NAMESPACE
 #define NUM_STRIPS 1
 #define NUM_LEDS_PER_STRIP 32
 #define BRIGHTNESS_START 100;
-#define SAMPLING_FREQUENCY 5000; // in Hz, muss kleiner gleich 10000 wegen ADC
-#define NUM_SAMPLES 128 // muss power of 2 sein
+#define SAMPLING_FREQUENCY 7000; // in Hz, muss kleiner gleich 10000 wegen ADC
+#define NUM_SAMPLES 64 // muss power of 2 sein
 #define NUM_FFT_BINS NUM_LEDS_PER_STRIP
 
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
@@ -91,7 +91,7 @@ void setup() {
 
   // initialize frequency values that are represented in each FFT bin, used for binning and interpolating the frequency spectrum.
   for(int i=0; i<NUM_FFT_BINS; i++) {
-    FFT_bins_freqs[i] = i*NUM_SAMPLES/float(NUM_FFT_BINS);
+    FFT_bins_freqs[i] = 0.5*i*NUM_SAMPLES/float(NUM_FFT_BINS);
   }
 
   // serial for debugging
@@ -103,7 +103,7 @@ void setup() {
 
 typedef void (*PatternList[])();
 
-PatternList patterns = {RainbowColors_withGlitter_react, Bar_pattern_ChoiceColor,BarInverse_pattern_ChoiceColor,Breathing_pattern_ChoiceColor,FFTpattern_ChoiceColor,FFTpattern_Heat,FFTpattern_ColorWhite,FFTpattern_HeatColors, FFTpattern_OceanColors,FFTpattern_LavaColors,FFTpattern_ForestColors, FFTpattern_CloudColors,FFTpattern_RainbowColors,FFTpattern_PartyColors};
+PatternList patterns = {FFTpattern_ChoiceColor_Reduced,FFTpattern_ColorWhite,RainbowColors_withGlitter_react, Bar_pattern_ChoiceColor,BarInverse_pattern_ChoiceColor,Breathing_pattern_ChoiceColor,FFTpattern_ChoiceColor,FFTpattern_Heat,FFTpattern_HeatColors, FFTpattern_OceanColors,FFTpattern_LavaColors,FFTpattern_ForestColors, FFTpattern_CloudColors,FFTpattern_RainbowColors,FFTpattern_PartyColors};
 
 // hier kommt das tatsaechliche Programm
 void loop() {
@@ -197,7 +197,11 @@ void nextPattern()
 void calculateFFT()
 {
     // FFT
-    FFT.Windowing(vReal, NUM_SAMPLES, FFT_WIN_TYP_HANN, FFT_FORWARD);
+    //FFT.Windowing(vReal, NUM_SAMPLES, FFT_WIN_TYP_HANN, FFT_FORWARD);
+    //FFT.Windowing(vReal, NUM_SAMPLES, FFT_WIN_TYP_HAMMING, FFT_FORWARD);
+    FFT.Windowing(vReal, NUM_SAMPLES, FFT_WIN_TYP_BLACKMAN_HARRIS, FFT_FORWARD);
+    //FFT.Windowing(vReal, NUM_SAMPLES, FFT_WIN_TYP_FLT_TOP, FFT_FORWARD);
+    //FFT.Windowing(vReal, NUM_SAMPLES, FFT_WIN_TYP_RECTANGLE, FFT_FORWARD);
     FFT.Compute(vReal, vImag, NUM_SAMPLES, FFT_FORWARD);
     FFT.ComplexToMagnitude(vReal, vImag, NUM_SAMPLES);
 
@@ -374,6 +378,19 @@ void FFTpattern_ChoiceColor() {
   }
 
   FastLED.setBrightness(BRIGHTNESS_SUMPATTERNS);
+}
+
+void FFTpattern_ChoiceColor_Reduced() {
+  calculateFFT();
+  for(int i=0; i<NUM_LEDS_PER_STRIP; i++) {
+    leds[0][i] = CHSV(int(brightness), 255, min(FFT_bins[i],255));;
+  }
+
+  for(int i=1; i<NUM_STRIPS; i++) {
+    memcpy(&leds[i], &leds[0], NUM_LEDS_PER_STRIP * sizeof(CRGB));
+  }
+
+  FastLED.setBrightness(10);
 }
 
 // -------------- React-Patterns
