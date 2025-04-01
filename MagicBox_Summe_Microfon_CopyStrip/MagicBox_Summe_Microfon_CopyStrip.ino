@@ -90,8 +90,10 @@ void setup() {
   }
 
   // initialize frequency values that are represented in each FFT bin, used for binning and interpolating the frequency spectrum.
+  float divisor=100;
   for(int i=0; i<NUM_FFT_BINS; i++) {
-    FFT_bins_freqs[i] = 0.5*i*NUM_SAMPLES/float(NUM_FFT_BINS);
+    FFT_bins_freqs[i] = 0.5*NUM_SAMPLES*i/float(NUM_FFT_BINS);
+    //FFT_bins_freqs[i] = 0.5*NUM_SAMPLES*pow(10,i/divisor)/pow(10,NUM_FFT_BINS/divisor);
   }
 
   // serial for debugging
@@ -188,6 +190,16 @@ double interpolation(double f) {
   return (vReal[int(f)+1] - vReal[int(f)]) * (f - int(f)) + vReal[int(f)];
 }
 
+double binning(double f_start,double f_end){
+  int sum=0;
+  int f=int(f_start);
+  while (f<=f_end){
+    sum+=vReal[f];
+    f++;
+  }
+  return sum;
+}
+
 void nextPattern()
 {
   // add one to the current pattern number, and wrap around at the end
@@ -207,8 +219,9 @@ void calculateFFT()
 
   // Berechnung FFT Bins
 
-    for(int i=0; i<NUM_FFT_BINS; i++) {
+    for(int i=0; i<NUM_FFT_BINS-1; i++) {
       FFT_bins[i] = int(interpolation(FFT_bins_freqs[i]));
+      //FFT_bins[i] = int(binning(FFT_bins_freqs[i], FFT_bins_freqs[i+1]));
     }
 }
 
@@ -392,6 +405,9 @@ void FFTpattern_ChoiceColor_Reduced() {
 
   FastLED.setBrightness(10);
 }
+
+
+
 
 // -------------- React-Patterns
 void RainbowColor_react() {
