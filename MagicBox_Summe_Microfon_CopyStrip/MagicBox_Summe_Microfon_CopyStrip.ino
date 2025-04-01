@@ -22,8 +22,8 @@ FASTLED_USING_NAMESPACE
 
 #define NUM_STRIPS 1
 #define NUM_LEDS_PER_STRIP 32
-#define BRIGHTNESS_START 100;
-#define SAMPLING_FREQUENCY 7000; // in Hz, muss kleiner gleich 10000 wegen ADC
+#define BRIGHTNESS_START 100
+#define SAMPLING_FREQUENCY 7000 // in Hz, muss kleiner gleich 10000 wegen ADC
 #define NUM_SAMPLES 64 // muss power of 2 sein
 #define NUM_FFT_BINS NUM_LEDS_PER_STRIP
 
@@ -59,7 +59,7 @@ const int delta_hue = 7;
 
 
 // Initialize Arduino FFT as volatile, muss vor setup passieren
-arduinoFFT FFT = arduinoFFT();
+ArduinoFFT<double> FFT = ArduinoFFT<double>(vReal,vImag,NUM_SAMPLES,1.0*SAMPLING_FREQUENCY);
 
 
 // Hier kommt die Bootroutine
@@ -199,11 +199,11 @@ void calculateFFT()
     // FFT
     //FFT.Windowing(vReal, NUM_SAMPLES, FFT_WIN_TYP_HANN, FFT_FORWARD);
     //FFT.Windowing(vReal, NUM_SAMPLES, FFT_WIN_TYP_HAMMING, FFT_FORWARD);
-    FFT.Windowing(vReal, NUM_SAMPLES, FFT_WIN_TYP_BLACKMAN_HARRIS, FFT_FORWARD);
+    FFT.windowing(FFTWindow::Blackman_Harris, FFTDirection::Forward);
     //FFT.Windowing(vReal, NUM_SAMPLES, FFT_WIN_TYP_FLT_TOP, FFT_FORWARD);
     //FFT.Windowing(vReal, NUM_SAMPLES, FFT_WIN_TYP_RECTANGLE, FFT_FORWARD);
-    FFT.Compute(vReal, vImag, NUM_SAMPLES, FFT_FORWARD);
-    FFT.ComplexToMagnitude(vReal, vImag, NUM_SAMPLES);
+    FFT.compute(FFTDirection::Forward);
+    FFT.complexToMagnitude();
 
   // Berechnung FFT Bins
 
