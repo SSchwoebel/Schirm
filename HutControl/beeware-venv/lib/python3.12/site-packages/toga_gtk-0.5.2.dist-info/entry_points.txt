@@ -1,0 +1,3 @@
+[toga.backends]
+freeBSD = toga_gtk
+linux = toga_gtk

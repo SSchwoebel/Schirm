@@ -1,0 +1,223 @@
+from abc import abstractmethod
+
+from travertino.size import at_least
+
+from ..libs import (
+    GTK_VERSION,
+    Gtk,
+    get_background_color_css,
+    get_color_css,
+    get_font_css,
+)
+
+
+class Widget:
+    def __init__(self, interface):
+        super().__init__()
+        self.interface = interface
+        self._container = None
+        self.native = None
+        self.style_providers = {}
+        self.create()
+
+        # Ensure the native widget has links to the interface and impl
+        self.native.interface = self.interface
+        self.native._impl = self
+
+        # Ensure the native widget has GTK CSS style attributes; create() should
+        # ensure any other widgets are also styled appropriately.
+        self.native.set_name(f"toga-{self.interface.id}")
+        if GTK_VERSION < (4, 0, 0):  # pragma: no-cover-if-gtk4
+            self.native.get_style_context().add_class("toga")
+        else:  # pragma: no-cover-if-gtk3
+            self.native.add_css_class("toga")
+
+    @abstractmethod
+    def create(self): ...
+
+    def set_app(self, app):
+        pass
+
+    def set_window(self, window):
+        pass
+
+    @property
+    def container(self):
+        return self._container
+
+    @container.setter
+    def container(self, container):
+        if self.container:
+            assert container is None, "Widget already has a container"
+
+            # container is set to None, removing self from the container.native
+            # Note from pygtk documentation: Note that the container will own a
+            # reference to widget, and that this may be the last reference held;
+            # so removing a widget from its container can cause that widget to be
+            # destroyed. If you want to use widget again, you should add a
+            # reference to it.
+            self._container.remove(self.native)
+            self._container = None
+        elif container:
+            # setting container, adding self to container.native
+            self._container = container
+            if GTK_VERSION < (4, 0, 0):  # pragma: no-cover-if-gtk4
+                self._container.add(self.native)
+                self.native.show_all()
+            else:  # pragma: no-cover-if-gtk3
+                self._container.append(self.native)
+
+        for child in self.interface.children:
+            child._impl.container = container
+
+        self.refresh()
+
+    def get_enabled(self):
+        return self.native.get_sensitive()
+
+    def set_enabled(self, value):
+        self.native.set_sensitive(value)
+
+    @property
+    def has_focus(self):
+        if GTK_VERSION < (4, 0, 0):  # pragma: no-cover-if-gtk4
+            return self.native.has_focus()
+        else:  # pragma: no-cover-if-gtk3
+            root = self.native.get_root()
+            focus_widget = root.get_focus()
+            if focus_widget:
+                if focus_widget == self.native:
+                    return self.native.has_focus()
+                else:
+                    return focus_widget.is_ancestor(self.native)
+            else:
+                return False
+
+    def focus(self):
+        if not self.has_focus:
+            self.native.grab_focus()
+
+    def get_tab_index(self):
+        self.interface.factory.not_implemented("Widget.get_tab_index()")
+
+    def set_tab_index(self, tab_index):
+        self.interface.factory.not_implemented("Widget.set_tab_index()")
+
+    ######################################################################
+    # CSS tools
+    ######################################################################
+
+    def apply_css(self, property, css, native=None, selector=".toga"):
+        """Apply a CSS style controlling a specific property type.
+
+        GTK controls appearance with CSS; each GTK widget can have an
+        independent style sheet, composed out of multiple providers.
+
+        Toga uses a separate provider for each property that needs to be
+        controlled (e.g., color, font, ...). When that property is modified, the
+        old provider for that property is removed; if new CSS has been provided,
+        a new provider is constructed and added to the widget.
+
+        It is assumed that every Toga widget will have the class ``toga``.
+
+        :param property: The style property to modify
+        :param css: A dictionary of string key-value pairs, describing the new
+            CSS for the given property. If ``None``, the Toga style for that
+            property will be reset
+        :param native: The native widget to which the style should be applied.
+            Defaults to ``self.native``.
+        :param selector: The CSS selector used to target the style. Defaults to
+            ``.toga``.
+        """
+        if native is None:
+            native = self.native
+
+        style_context = native.get_style_context()
+        style_provider = self.style_providers.pop((property, id(native)), None)
+
+        # If there was a previous style provider for the given property, remove
+        # it from the GTK widget
+        if style_provider:
+            style_context.remove_provider(style_provider)
+
+        # If there's new CSS to apply, construct a new provider, and install it.
+        if css is not None:
+            # Create a new CSS StyleProvider
+            style_provider = Gtk.CssProvider()
+            styles = " ".join(f"{key}: {value};" for key, value in css.items())
+            declaration = selector + " {" + styles + "}"
+            style_provider.load_from_data(declaration.encode())
+
+            # Add the provider to the widget
+            style_context.add_provider(
+                style_provider,
+                Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION,
+            )
+            # Store the provider so it can be removed later
+            self.style_providers[(property, id(native))] = style_provider
+
+    ######################################################################
+    # APPLICATOR
+    ######################################################################
+
+    def set_bounds(self, x, y, width, height):
+        # Any position changes are applied by the container during do_size_allocate.
+        self.container.make_dirty()
+
+    def set_text_align(self, alignment):
+        # By default, alignment can't be changed
+        pass
+
+    def set_hidden(self, hidden):
+        self.native.set_visible(not hidden)
+        if self.container:
+            self.container.make_dirty()
+
+    def set_color(self, color):
+        self.apply_css("color", get_color_css(color))
+
+    def set_background_color(self, color):
+        self.apply_css("background_color", get_background_color_css(color))
+
+    def set_font(self, font):
+        self.apply_css("font", get_font_css(font))
+
+    ######################################################################
+    # INTERFACE
+    ######################################################################
+
+    def add_child(self, child):
+        child.container = self.container
+
+    def insert_child(self, index, child):
+        self.add_child(child)
+
+    def remove_child(self, child):
+        child.container = None
+
+    def refresh(self):
+        # GTK doesn't/can't immediately evaluate the hinted size of the widget.
+        # Instead, put the widget onto a dirty list to be rehinted before the
+        # next layout.
+        if self.container:
+            self.container.make_dirty(self)
+
+    def rehint(self):
+        # Perform the actual GTK rehint.
+        if GTK_VERSION < (4, 0, 0):  # pragma: no-cover-if-gtk4
+            # print(
+            #     "REHINT",
+            #     self,
+            #     self.native.get_preferred_width(),
+            #     self.native.get_preferred_height(),
+            # )
+            width = self.native.get_preferred_width()
+            height = self.native.get_preferred_height()
+
+            self.interface.intrinsic.width = at_least(width[0])
+            self.interface.intrinsic.height = at_least(height[0])
+        else:  # pragma: no-cover-if-gtk3
+            min_size, _ = self.native.get_preferred_size()
+            # print("REHINT", self, f"{width_info[0]}x{height_info[0]}")
+            self.interface.intrinsic.width = at_least(min_size.width)
+            self.interface.intrinsic.height = at_least(min_size.height)
