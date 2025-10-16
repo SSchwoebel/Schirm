@@ -1,0 +1,15 @@
+[Unit]
+Description=Hut systemd service.
+#After=network-online.target
+#Wants=network-online.target
+#After=systemd-networkd-wait-online@wlan0.service
+#Wants=systemd-networkd-wait-online@wlan0.service
+After=systemd-networkd.service
+Wants=systemd-networkd.service
+
+[Service]
+Type=simple
+ExecStart=/bin/bash /home/pi/Hut/start_new.sh
+
+[Install]
+WantedBy=multi-user.target
