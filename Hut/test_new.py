@@ -11,6 +11,10 @@ import neopixel
 import Pyro4
 import threading
 import socket
+import pyaudio
+from scipy.fft import fft
+import numpy
+from skimage.transform import resize
 # Choose an open pin connected to the Data In of the NeoPixel strip, i.e. board.D18
 # NeoPixels must be connected to D10, D12, D18 or D21 to work.
 pixel_pin = board.D18
@@ -21,6 +25,13 @@ num_pixels = 43
 # The order of the pixel colors - RGB or GRB. Some NeoPixels have red and green reversed!
 # For RGBW NeoPixels, simply change the ORDER to RGBW or GRBW.
 ORDER = neopixel.RGB
+
+#Recording Parameters
+chunk = 1024  # Record in chunks of 1024 samples
+sample_format = pyaudio.paInt16  # 16 bits per sample
+channels = 1
+fs = 44100  # Record at 44100 samples per second
+seconds = 0.01
 
 pixels = neopixel.NeoPixel(
     pixel_pin, num_pixels, brightness=0.2, auto_write=False, pixel_order=ORDER
@@ -56,6 +67,35 @@ def rainbow_cycle(wait):
             pixels[i] = wheel(pixel_index & 255)
         pixels.show()
         time.sleep(wait)
+
+def fft_pattern():
+    stream = p.open(format=sample_format,
+                channels=channels,
+                rate=fs,
+                frames_per_buffer=chunk,
+                input=True)
+
+    frames = []  # Initialize array to store frames
+
+    # Store data in chunks for 3 seconds
+    for i in range(0, int(fs / chunk * seconds)):
+        data = stream.read(chunk)
+        frames.append(data)
+
+    # Stop and close the stream
+    stream.stop_stream()
+    stream.close()
+    # Terminate the PortAudio interface
+    p.terminate()
+
+    x = numpy.array(frames)
+    y = fft(x)
+
+    led_values = resize(y,(num_pixels))
+
+    for i in range(num_pixels):
+        pixels[i]=(0,0,led_values[i])
+    pixels.show()
 
 @Pyro4.expose
 class Pattern(object):
@@ -95,6 +135,8 @@ while True:
         pixels.show()
     elif patterninstance.Nr==3:
         rainbow_cycle(0.001)
+    elif patterninstance.Nr==4:
+        fft_pattern()
     else:
         # Comment this line out if you have RGBW/GRBW NeoPixels
         pixels.fill((255, 0, 0))
