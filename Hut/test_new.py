@@ -42,6 +42,13 @@ pixels = neopixel.NeoPixel(
 
 p = pyaudio.PyAudio()
 
+#Audiokram
+stream = p.open(format=sample_format,
+    channels=channels,
+    rate=fs,
+    frames_per_buffer=chunk,
+    input=True)
+
 def wheel(pos):
     # Input a value 0 to 255 to get a color value.
     # The colours are a transition r - g - b - back to r.
@@ -73,20 +80,14 @@ def rainbow_cycle(wait):
         time.sleep(wait)
 
 def fft_pattern():
-    stream = p.open(format=sample_format,
-                channels=channels,
-                rate=fs,
-                frames_per_buffer=chunk,
-                input=True)
+
 
     frames = []  # Initialize array to store frames
 
     # Store data in chunks for 3 seconds
     data = stream.read(chunk)
 
-    # Stop and close the stream
-    stream.stop_stream()
-    stream.close()
+
 
     x = numpy.frombuffer(data,dtype=numpy.int16)
     y = fft(x)
