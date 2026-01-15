@@ -80,14 +80,8 @@ def rainbow_cycle(wait):
         time.sleep(wait)
 
 def fft_pattern():
-
-
-    frames = []  # Initialize array to store frames
-
     # Store data in chunks for 3 seconds
     data = stream.read(chunk)
-
-
 
     x = numpy.frombuffer(data,dtype=numpy.int16)
     y = fft(x)
