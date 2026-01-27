@@ -6,7 +6,7 @@ import time
 
 import board
 
-import neopixel
+import neopixel   #siehe https://learn.adafruit.com/neopixels-on-raspberry-pi/python-usage
 
 import Pyro4
 import threading
