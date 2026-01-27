@@ -85,7 +85,7 @@ def rainbow_cycle(wait):
 def fft_pattern():
     global maximum
     # Store data in chunks for 3 seconds
-    data = stream.read(chunk)
+    data = stream.read(chunk, False)
 
     x = numpy.frombuffer(data,dtype=numpy.int16)
     y = fft(x)
