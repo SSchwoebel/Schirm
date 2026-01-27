@@ -98,7 +98,8 @@ def fft_pattern():
         maximum = localmax
     print(maximum)
     led_values = led_values.reshape(num_pixels)
-    led_values= abs(led_values/maximum* 255)
+    led_values= numpy.absolute(led_values/maximum* 1000)
+    led_values= numpy.clip(led_values,0,255)
     led_values= led_values.astype(int)
     for i in range(num_pixels):
         pixels[i]=(0,0,led_values[i])
