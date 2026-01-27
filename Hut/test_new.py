@@ -35,7 +35,7 @@ seconds = 0.01
 chunk = int(fs*seconds)
 
 #FFT Parameters
-fft_factor=0.001
+fft_factor=0.1
 pixels = neopixel.NeoPixel(
     pixel_pin, num_pixels, brightness=0.2, auto_write=False, pixel_order=ORDER
 )
