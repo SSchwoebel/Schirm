@@ -35,10 +35,13 @@ seconds = 0.01
 chunk = int(fs*seconds)
 
 #FFT Parameters
-fft_factor=0.1
+fft_factor=0.00000001
 pixels = neopixel.NeoPixel(
     pixel_pin, num_pixels, brightness=0.2, auto_write=False, pixel_order=ORDER
 )
+
+#Patternnormalization
+maximum = 0.000000001
 
 p = pyaudio.PyAudio()
 
@@ -89,8 +92,11 @@ def fft_pattern():
 
     led_values = resize(real,(num_pixels,1))
 
+    localmax=numpy.max(led_values)
+    if  localmax > maximum:
+        maximum = localmax
     led_values = led_values.reshape(num_pixels)
-    led_values= abs(led_values*fft_factor * 255)
+    led_values= abs(led_values/maximum* 255)
     led_values= led_values.astype(int)
     for i in range(num_pixels):
         pixels[i]=(0,0,led_values[i])
