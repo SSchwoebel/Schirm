@@ -83,6 +83,7 @@ def rainbow_cycle(wait):
         time.sleep(wait)
 
 def fft_pattern():
+    global maximum
     # Store data in chunks for 3 seconds
     data = stream.read(chunk)
 
