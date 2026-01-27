@@ -41,7 +41,7 @@ pixels = neopixel.NeoPixel(
 )
 
 #Patternnormalization
-maximum = 0.000000001
+maximum = 1.0
 
 p = pyaudio.PyAudio()
 
@@ -95,6 +95,7 @@ def fft_pattern():
     localmax=numpy.max(led_values)
     if  localmax > maximum:
         maximum = localmax
+    print(maximum)
     led_values = led_values.reshape(num_pixels)
     led_values= abs(led_values/maximum* 255)
     led_values= led_values.astype(int)
