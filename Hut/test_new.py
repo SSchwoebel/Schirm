@@ -13,6 +13,7 @@ import threading
 import socket
 import pyaudio
 from scipy.fft import fft
+from scipy.signal.windows import blackman
 import numpy
 from skimage.transform import resize
 # Choose an open pin connected to the Data In of the NeoPixel strip, i.e. board.D18
@@ -88,8 +89,9 @@ def fft_pattern():
     data = stream.read(chunk, False)
 
     x = numpy.frombuffer(data,dtype=numpy.int16)
-    y = fft(x)
-    real = y.real
+    w = blackman(chunk)
+    y = fft(x*w)
+    real = y.real[1:chunk//2]
 
     led_values = resize(real,(num_pixels,1))
 
