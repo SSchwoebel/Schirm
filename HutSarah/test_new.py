@@ -15,6 +15,7 @@ import pyaudio
 from scipy.fft import fft
 import numpy
 from skimage.transform import resize
+import patterns
 # Choose an open pin connected to the Data In of the NeoPixel strip, i.e. board.D18
 # NeoPixels must be connected to D10, D12, D18 or D21 to work.
 pixel_pin = board.D18
@@ -74,13 +75,14 @@ def wheel(pos):
     return (r, g, b) if ORDER in {neopixel.RGB, neopixel.GRB} else (r, g, b, 0)
 
 
-def rainbow_cycle(wait):
-    for j in range(255):
-        for i in range(num_pixels):
-            pixel_index = (i * 256 // num_pixels) + j
-            pixels[i] = wheel(pixel_index & 255)
-        pixels.show()
-        time.sleep(wait)
+RainbowCycleInstance = patterns.RainbowCycle(pixels, num_pixels)
+# def rainbow_cycle(wait):
+#     for j in range(255):
+#         for i in range(num_pixels):
+#             pixel_index = (i * 256 // num_pixels) + j
+#             pixels[i] = wheel(pixel_index & 255)
+#         pixels.show()
+#         time.sleep(wait)
 
 def fft_pattern():
     global maximum
@@ -143,7 +145,8 @@ while True:
     elif patterninstance.Nr==3:
         rainbow_cycle(0.001)
     elif patterninstance.Nr==4:
-        fft_pattern()
+        RainbowCycleInstance.run()
+        # fft_pattern()
     else:
         # Comment this line out if you have RGBW/GRBW NeoPixels
         pixels.fill((255, 0, 0))
