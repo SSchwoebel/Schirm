@@ -1,3 +1,5 @@
+import Pyro4
+import patterns
 @Pyro4.expose
 class PatternCtrl(object):
     def __init__(self, pattern_list):
