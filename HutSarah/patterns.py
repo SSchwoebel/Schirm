@@ -14,10 +14,11 @@ class BasePattern(object):
 
 
 class RainbowCycle(BasePattern):
-    def __init__(self, pixels, num_pixels):
+    def __init__(self, pixels, num_pixels, order):
         # self.super.__init__()
         self.pixels = pixels
         self.num_pixels = num_pixels
+        self.order = order
 
         self.parameters = {"wait": {"value": 0.01, "range": [0.001, 0.1]}}
 
@@ -55,4 +56,4 @@ class RainbowCycle(BasePattern):
             r = 0
             g = int(pos * 3)
             b = int(255 - pos * 3)
-        return (r, g, b) if ORDER in {neopixel.RGB, neopixel.GRB} else (r, g, b, 0)
+        return (r, g, b) if self.order in {neopixel.RGB, neopixel.GRB} else (r, g, b, 0)

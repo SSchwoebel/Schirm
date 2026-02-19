@@ -75,7 +75,7 @@ stream = p.open(format=sample_format,
 #     return (r, g, b) if ORDER in {neopixel.RGB, neopixel.GRB} else (r, g, b, 0)
 
 
-RainbowCycleInstance = patterns.RainbowCycle(pixels, num_pixels)
+RainbowCycleInstance = patterns.RainbowCycle(pixels, num_pixels, ORDER)
 # def rainbow_cycle(wait):
 #     for j in range(255):
 #         for i in range(num_pixels):
