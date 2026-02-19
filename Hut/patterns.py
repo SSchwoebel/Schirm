@@ -1,4 +1,11 @@
 from parameters import Parameter
+import numpy
+from scipy.fftpack import fft
+from scipy.signal.windows import blackman
+from skimage.transform import resize
+import pyaudio
+import neopixel
+import board
 
 class BasePattern:
     def __init__(self):
