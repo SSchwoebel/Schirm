@@ -36,7 +36,7 @@ class RainbowCycle(BasePattern):
             pixels.show()
             time.sleep(self.parameters["wait"]["value"])
 
-    def _wheel(pos):
+    def _wheel(self, pos):
         # Input a value 0 to 255 to get a color value.
         # The colours are a transition r - g - b - back to r.
         if pos < 0 or pos > 255:
