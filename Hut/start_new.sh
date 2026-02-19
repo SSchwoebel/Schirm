@@ -8,4 +8,4 @@ done
 sleep 15s
 
 pyro4-ns -n 0.0.0.0 &
-python /home/pi/Hut/test_new.py
+python /home/pi/Hut/test_new2.py
