@@ -48,7 +48,7 @@ class FFTPattern(BasePattern):
         if  localmax > self.maximum:
             self.maximum = localmax
         led_values = led_values.reshape(self.num_pixels)
-        led_values= numpy.absolute(led_values/self.maximum* self.parameters["Brightness"]* 1000)
+        led_values= numpy.absolute(led_values/self.maximum* self.parameters["Brightness"]* 100)
         led_values= numpy.clip(led_values,0,255)
         led_values= led_values.astype(int)
         for i in range(self.num_pixels):
