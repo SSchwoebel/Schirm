@@ -145,7 +145,7 @@ while True:
     elif patterninstance.Nr==3:
         rainbow_cycle(0.001)
     elif patterninstance.Nr==4:
-        RainbowCycleInstance.run()
+        RainbowCycleInstance.play()
         # fft_pattern()
     else:
         # Comment this line out if you have RGBW/GRBW NeoPixels

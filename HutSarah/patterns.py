@@ -17,7 +17,7 @@ class RainbowCycle(BasePattern):
     def __init__(self, pixels, num_pixels):
         # self.super.__init__()
         self.pixels = pixels
-        self.num_pixels = pixels
+        self.num_pixels = num_pixels
 
         self.parameters = {"wait": {"value": 0.01, "range": [0.001, 0.1]}}
 
@@ -28,7 +28,7 @@ class RainbowCycle(BasePattern):
 
         return self.parameters
 
-    def play():
+    def play(self):
         for j in range(255):
             for i in range(self.num_pixels):
                 pixel_index = (i * 256 // self.num_pixels) + j
