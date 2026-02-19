@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: MIT
 
 import patterns
+import patternctrl
+
 # Simple test for NeoPixels on Raspberry Pi
 import time
 
@@ -36,14 +38,10 @@ fs = 48000  # Record at 44100 samples per second
 seconds = 0.01
 chunk = int(fs*seconds)
 
-#FFT Parameters
-fft_factor=0.00000001
 pixels = neopixel.NeoPixel(
     pixel_pin, num_pixels, brightness=0.2, auto_write=False, pixel_order=ORDER
 )
 
-#Patternnormalization
-maximum = 1.0
 
 p = pyaudio.PyAudio()
 
@@ -56,6 +54,19 @@ stream = p.open(format=sample_format,
 
 # Pattern
 pattern = patterns.FFTPattern(pixels, stream, chunk, num_pixels)
+
+patternctrlinstance = patternctrl.PatternCtrl([pattern])
+
+def run_pyro():
+    daemon = Pyro4.Daemon(Pyro4.socketutil.getIpAddress(socket.gethostname()+'.local'))
+    ns = Pyro4.locateNS()
+    uri=daemon.register(patternctrlinstance)
+    ns.register('Hut',uri)
+    print("uri=",uri)
+    daemon.requestLoop()
+
+pyrothread = threading.Thread(target=run_pyro)
+pyrothread.start()
 
 while True:
     pattern.play()

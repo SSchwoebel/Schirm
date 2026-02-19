@@ -28,12 +28,10 @@ class FFTPattern(BasePattern):
         self.chunk = chunk
         self.num_pixels = num_pixels    
 
-        self.maximum = 0
+        self.maximum = 1
 
 
-    def play(self):
-        # Implement the FFT pattern logic here, using self.parameters["Brightness"] as needed
-        
+    def play(self):        
         # Store data in chunks for 3 seconds
         data = self.stream.read(self.chunk, False)
 
